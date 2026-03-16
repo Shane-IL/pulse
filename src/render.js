@@ -1,0 +1,123 @@
+import { diff } from './diff.js';
+import { createDOMNode, applyPatches, applyProps } from './patch.js';
+import { CONNECTED, ComponentInstance } from './connect.js';
+import { TEXT_NODE, FRAGMENT } from './vnode.js';
+
+const roots = new WeakMap();
+
+export function render(vnode, container) {
+  const prev = roots.get(container);
+
+  if (!prev) {
+    // First mount
+    const expanded = expand(vnode, container);
+    const dom = createDOMNode(expanded);
+    container.appendChild(dom);
+
+    const instances = [];
+    collectInstances(expanded, instances);
+    for (const inst of instances) {
+      inst.mount(container, () => reRenderInstance(inst, container));
+    }
+
+    roots.set(container, { vTree: expanded });
+  } else {
+    // Update
+    const expanded = expand(vnode, container);
+
+    const oldInstances = [];
+    collectInstances(prev.vTree, oldInstances);
+
+    const patches = diff(prev.vTree, expanded);
+    applyPatches(container, patches);
+
+    const newInstances = [];
+    collectInstances(expanded, newInstances);
+
+    // Unmount removed instances
+    const newSet = new Set(newInstances);
+    for (const inst of oldInstances) {
+      if (!newSet.has(inst)) {
+        inst.unmount();
+      }
+    }
+
+    // Mount new instances
+    const oldSet = new Set(oldInstances);
+    for (const inst of newInstances) {
+      if (!oldSet.has(inst)) {
+        inst.mount(container, () => reRenderInstance(inst, container));
+      }
+    }
+
+    roots.set(container, { vTree: expanded });
+  }
+}
+
+function expand(vnode, parentDom) {
+  if (vnode == null) return null;
+
+  if (typeof vnode.type === 'function') {
+    if (vnode.type[CONNECTED]) {
+      // Connected component
+      const instance = new ComponentInstance(vnode.type, vnode.props);
+      const childVNode = vnode.type(vnode.props);
+      const expanded = expand(childVNode, parentDom);
+
+      if (expanded) {
+        expanded._instance = instance;
+        instance.lastVTree = expanded;
+      }
+
+      return expanded;
+    }
+
+    // Plain function component
+    const childVNode = vnode.type({ ...vnode.props, children: vnode.children });
+    return expand(childVNode, parentDom);
+  }
+
+  // Element, text, or fragment: recursively expand children
+  if (vnode.children?.length) {
+    vnode.children = vnode.children
+      .map(child => expand(child, parentDom))
+      .filter(c => c != null);
+  }
+
+  return vnode;
+}
+
+function reRenderInstance(instance, parentDom) {
+  const connectedFn = instance.connectedFn;
+  const newVNode = connectedFn(instance.props);
+  const newExpanded = expand(newVNode, parentDom);
+
+  if (instance.lastVTree && newExpanded) {
+    const patches = diff(instance.lastVTree, newExpanded);
+
+    // Find the actual parent DOM node to patch against
+    const domParent = instance.lastVTree._dom?.parentNode || parentDom;
+    applyPatches(domParent, patches);
+
+    // Transfer the _dom reference from old to new
+    if (!newExpanded._dom) {
+      newExpanded._dom = instance.lastVTree._dom;
+    }
+  }
+
+  if (newExpanded) {
+    newExpanded._instance = instance;
+  }
+  instance.lastVTree = newExpanded;
+  instance.updateSelected();
+}
+
+function collectInstances(vnode, result) {
+  if (!vnode) return;
+  if (vnode._instance) result.push(vnode._instance);
+  if (vnode.children) {
+    for (const child of vnode.children) {
+      collectInstances(child, result);
+    }
+  }
+}
