@@ -171,6 +171,6 @@ counterStore.dispatch('increment'); // of the connected component
 ## Next Steps
 
 - [Stores](./stores.md) — actions, selectors, subscriptions, derived state
-- [Components](./components.md) — plain components, connected components, composition
-- [Lifecycle](./lifecycle.md) — onMount, onDestroy, cleanup functions
+- [Components](./components.md) — plain components, connected components, keyed lists, error boundaries
+- [Lifecycle](./lifecycle.md) — onMount, onUpdate, onDestroy, onError, cleanup functions
 - [Architecture](./architecture.md) — how the VDOM engine works under the hood

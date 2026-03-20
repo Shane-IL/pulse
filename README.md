@@ -7,7 +7,7 @@ A render-driven UI framework with virtual DOM and immutable stores. Like React, 
 - **No hooks.** All state lives in external stores. Components are `(props) => VNode`.
 - **Stores are first-class.** Create, import, and share stores anywhere. They're framework-agnostic.
 - **Render-driven.** Describe what the UI looks like for a given state. Pulse handles the rest.
-- **Tiny.** ~3 KB gzipped. Zero runtime dependencies.
+- **Tiny.** ~4 KB gzipped. Zero runtime dependencies.
 
 ## Quick Start
 
@@ -109,7 +109,7 @@ const Connected = connect({
 
 #### Lifecycle Callbacks
 
-The optional second argument adds mount/destroy lifecycle hooks:
+The optional second argument adds lifecycle hooks:
 
 ```jsx
 const Timer = connect(
@@ -120,16 +120,26 @@ const Timer = connect(
       const id = setInterval(() => timerStore.dispatch('tick'), 1000);
       return () => clearInterval(id); // cleanup — called on destroy
     },
+    onUpdate: ({ dom, props }) => {
+      // Called after every store-driven re-render (not on initial mount).
+      console.log('Timer updated:', dom.textContent);
+    },
     onDestroy: ({ props }) => {
       // Called when component is removed from the DOM.
       console.log('Timer removed');
+    },
+    onError: ({ error, props }) => {
+      // Called when the component throws during render. Return fallback VNode.
+      return h('div', { className: 'error' }, `Error: ${error.message}`);
     },
   }
 )(TimerView);
 ```
 
 - **`onMount({ dom, props })`** — fires once after first render. `dom` is the rendered DOM element. Can return a cleanup function that runs on destroy.
+- **`onUpdate({ dom, props })`** — fires after every store-driven re-render (not on initial mount). Useful for DOM measurement, animations, or logging.
 - **`onDestroy({ props })`** — fires when the component is removed, after cleanup.
+- **`onError({ error, props })`** — catches errors thrown during render. Return a fallback VNode (or `null`). The component stays subscribed and recovers on the next successful re-render.
 - Re-renders do **not** re-trigger `onMount`.
 - For components that only need lifecycle (no store bindings), pass empty bindings: `connect({}, { onMount })(Component)`.
 

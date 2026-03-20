@@ -9,7 +9,9 @@ Lifecycle callbacks are the escape hatch for these cases. They're available on c
 ```js
 connect(bindings, {
   onMount: ({ dom, props }) => { ... },
+  onUpdate: ({ dom, props }) => { ... },
   onDestroy: ({ props }) => { ... },
+  onError: ({ error, props }) => fallbackVNode,
 })(Component);
 ```
 
@@ -54,6 +56,80 @@ const Logger = connect({}, {
     analytics.track('component_destroyed', { id: props.id });
   },
 })(LoggerView);
+```
+
+### `onUpdate({ dom, props })`
+
+Called after every **store-driven re-render**. Does **not** fire on the initial mount — only on subsequent updates triggered by store changes.
+
+**Arguments:**
+- `dom` — the rendered DOM element (post-patch)
+- `props` — the component's props at update time
+
+**Use cases:** DOM measurement, scroll position management, triggering animations after state transitions, debug logging.
+
+```jsx
+const AnimatedList = connect(
+  { items: listStore.select((s) => s.items) },
+  {
+    onUpdate: ({ dom }) => {
+      // Measure DOM after every re-render
+      const height = dom.getBoundingClientRect().height;
+      dom.style.transition = 'height 200ms ease';
+      dom.style.height = `${height}px`;
+    },
+  }
+)(ListView);
+```
+
+`onUpdate` does **not** fire when an error is caught by `onError` — only on successful re-renders.
+
+### `onError({ error, props })`
+
+Called when the component throws an error during rendering. Acts as an **error boundary** — catches the error and renders a fallback UI instead of crashing the app.
+
+**Arguments:**
+- `error` — the thrown value (typed as `unknown` since JS can throw anything)
+- `props` — the component's props at the time of the error
+
+**Return value:** a VNode (or `null`) to render as fallback UI.
+
+```jsx
+const SafeChart = connect(
+  { data: dataStore.select((s) => s.chartData) },
+  {
+    onError: ({ error, props }) => {
+      console.error('Chart render failed:', error);
+      return (
+        <div className="error-fallback">
+          <p>Something went wrong rendering the chart.</p>
+          <button onClick={() => dataStore.dispatch('retry')}>Retry</button>
+        </div>
+      );
+    },
+  }
+)(ChartView);
+```
+
+**Key behaviors:**
+- The component **stays subscribed** to its stores after an error. On the next store change, it retries the real render — enabling automatic recovery from transient errors.
+- If `onError` is not provided, the error propagates (thrown to the caller).
+- If the **fallback itself** throws, the error propagates (no infinite loop).
+- Errors in **plain function components** bubble up to the nearest connected ancestor with `onError`.
+- Returning `null` from `onError` renders nothing.
+
+```jsx
+// Recovery from transient errors
+const SafeWidget = connect(
+  { data: widgetStore.select((s) => s.data) },
+  {
+    onError: ({ error }) => <p>Error: {error.message}</p>,
+  }
+)(Widget);
+
+// If Widget throws because data is temporarily malformed,
+// it renders the fallback. On the next store update with valid data,
+// Widget renders normally again — no page refresh needed.
 ```
 
 ## Cleanup Functions
@@ -181,10 +257,21 @@ const KeyboardShortcuts = connect({}, {
 })(ShortcutProvider);
 ```
 
+## Lifecycle Execution Order
+
+| Event | Callbacks fired |
+|-------|----------------|
+| First render | `onMount` |
+| Store-driven re-render (success) | `onUpdate` |
+| Store-driven re-render (error caught) | `onError` (onUpdate does **not** fire) |
+| Component removed | cleanup function (from onMount) → `onDestroy` → unsubscribe |
+
 ## Important Notes
 
-- **`onMount` fires once.** Re-renders do not re-trigger it. If you need to react to prop changes, use a store subscription.
+- **`onMount` fires once.** Re-renders do not re-trigger it. If you need to react to prop changes, use a store subscription or `onUpdate`.
+- **`onUpdate` fires on every re-render** after the initial mount. It does not fire when an error is caught.
 - **`onDestroy` fires once** when the component is removed from the DOM — either by conditional rendering or by the parent unmounting.
-- **Both callbacks are optional.** Use one, both, or neither.
-- **`dom` in `onMount` is the actual DOM element.** You can call native DOM APIs on it.
-- **Lifecycle is only available on connected components.** Plain function components have no lifecycle. If you need lifecycle without store bindings, use `connect({}, { onMount })`.
+- **`onError` acts as an error boundary.** The component stays subscribed and retries on the next store change.
+- **All callbacks are optional.** Use any combination you need.
+- **`dom` in `onMount` and `onUpdate` is the actual DOM element.** You can call native DOM APIs on it.
+- **Lifecycle is only available on connected components.** Plain function components have no lifecycle. If you need lifecycle without store bindings, use `connect({}, { onMount })`. Errors in plain components bubble to the nearest connected ancestor with `onError`.

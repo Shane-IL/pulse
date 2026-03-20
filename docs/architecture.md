@@ -5,23 +5,23 @@ This document explains how Pulse works under the hood — the render pipeline, v
 ## Module Dependency Graph
 
 ```
-vnode.js ─────────────────────────────────────────┐
+vnode.ts ─────────────────────────────────────────┐
     │                                              │
-createElement.js                                   │
+createElement.ts                                   │
                                                    │
-store.js (standalone)                              │
+store.ts (standalone)                              │
                                                    │
-scheduler.js (standalone)                          │
+scheduler.ts (standalone)                          │
     │                                              │
-connect.js ←── scheduler                           │
+connect.ts ←── scheduler                           │
     │                                              │
-diff.js ←── vnode                                  │
+diff.ts ←── vnode                                  │
     │                                              │
-patch.js ←── vnode, diff                           │
+patch.ts ←── vnode, diff                           │
     │                                              │
-render.js ←── diff, patch, connect, vnode          │
+render.ts ←── diff, patch, connect, vnode          │
     │                                              │
-index.js ←── barrel export ────────────────────────┘
+index.ts ←── barrel export ────────────────────────┘
 ```
 
 Key design constraint: `store.js` has **zero imports** from the rendering layer. Stores are fully framework-agnostic.
@@ -183,7 +183,14 @@ store.dispatch('increment')
     │  expand() → new element tree
     │  diff(oldTree, newTree) → patches
     │  applyPatches() → DOM mutations
+    │  unmountSubtree() on removed/replaced subtrees (skipping self)
     │  Update instance.lastVTree
+    │  Call onUpdate lifecycle (if present)
+    │
+    │  On error (if onError provided):
+    │    → expand fallback VNode
+    │    → diff/patch old tree with fallback
+    │    → instance stays subscribed (retries on next store change)
     ▼
   Single paint
 ```
@@ -220,16 +227,41 @@ When a parent connected component re-renders and a child connected component is 
 
 This ensures no subscription leaks and proper lifecycle callback ordering.
 
+### Self-Unmount Protection
+
+When `reRenderInstance()` diffs the old tree against a new tree (or an error fallback), a REPLACE patch can target the instance's own root VNode. To prevent the instance from unmounting itself (which would kill its store subscriptions), `unmountSubtree()` accepts an optional `skip` parameter — the current instance. Child instances in removed subtrees are still properly unmounted.
+
+### Error Boundary Flow
+
+When a connected component throws during render:
+
+1. `onError({ error, props })` is called if provided — returns a fallback VNode
+2. The fallback is expanded, diffed against the old tree, and patched into the DOM
+3. The instance remains subscribed to its stores (not unmounted)
+4. On the next store change, the component retries the real render
+5. If the render succeeds, the fallback is replaced with normal output (recovery)
+6. If `onError` is not provided, the error propagates to the caller
+7. If the fallback itself throws, the error propagates (no infinite loop)
+
+## Keyed List Warnings (Development Only)
+
+In development (`process.env.NODE_ENV !== 'production'`), the diffing algorithm warns about:
+
+- **Duplicate keys** among siblings
+- **Mixed keyed and unkeyed** children in the same list
+
+These warnings are dead-code eliminated by Vite in production builds.
+
 ## File Reference
 
 | File | Size | Responsibility |
 |------|------|----------------|
-| `src/vnode.js` | ~30 LOC | VNode types, text node creation, child normalization |
-| `src/createElement.js` | ~15 LOC | JSX pragma `h()`, key extraction |
-| `src/store.js` | ~25 LOC | Immutable store with dispatch/subscribe/select |
-| `src/scheduler.js` | ~15 LOC | Microtask-based batched update queue |
-| `src/diff.js` | ~180 LOC | VDOM tree diffing with two-pointer children reconciliation |
-| `src/patch.js` | ~100 LOC | DOM creation and mutation |
-| `src/connect.js` | ~100 LOC | `connect()` HOC, `ComponentInstance`, `shallowEqual` |
-| `src/render.js` | ~140 LOC | `render()`, `expand()`, `reRenderInstance()` |
-| **Total** | **~600 LOC** | **~3.5 KB gzipped** |
+| `src/vnode.ts` | ~60 LOC | VNode types, Lifecycle interface, text node creation, child normalization |
+| `src/createElement.ts` | ~18 LOC | JSX pragma `h()`, key extraction |
+| `src/store.ts` | ~45 LOC | Immutable store with dispatch/subscribe/select |
+| `src/scheduler.ts` | ~20 LOC | Microtask-based batched update queue |
+| `src/diff.ts` | ~240 LOC | VDOM tree diffing with two-pointer children reconciliation, key warnings |
+| `src/patch.ts` | ~150 LOC | DOM creation and mutation |
+| `src/connect.ts` | ~150 LOC | `connect()` HOC, `ComponentInstance`, `shallowEqual` |
+| `src/render.ts` | ~205 LOC | `render()`, `expand()`, `reRenderInstance()`, error boundaries |
+| **Total** | **~890 LOC** | **~4 KB gzipped** |

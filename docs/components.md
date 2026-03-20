@@ -153,6 +153,12 @@ When rendering lists, always provide a `key` prop to help the diffing algorithm 
 
 Keys should be stable, unique identifiers — not array indices. Without keys, Pulse falls back to positional matching which can cause incorrect updates when items are reordered, inserted, or removed.
 
+> **Development warnings:** In development mode, Pulse warns about common key mistakes:
+> - **Duplicate keys** — two siblings with the same key
+> - **Mixed keyed and unkeyed** — some siblings have keys and others don't
+>
+> These warnings are removed in production builds (guarded by `process.env.NODE_ENV`).
+
 ## Event Handling
 
 Event handlers are passed as `onXxx` props (camelCase):
@@ -210,7 +216,37 @@ When a connected component is conditionally removed, its subscriptions are clean
 |---|---|---|
 | **State** | None — just renders props | Subscribes to stores |
 | **Re-renders** | When parent re-renders | When selected store values change |
-| **Lifecycle** | None | `onMount` / `onDestroy` available |
+| **Lifecycle** | None | `onMount` / `onUpdate` / `onDestroy` / `onError` |
+| **Error handling** | Errors bubble to parent | Can catch errors via `onError` (error boundary) |
 | **Use for** | Presentational UI, layouts | Data-fetching components, interactive widgets |
 
 **Rule of thumb:** Keep most components plain. Use `connect()` at the boundaries where data enters the component tree.
+
+### Error Boundaries
+
+Connected components can catch render errors via `onError`. Errors in plain function components bubble up to the nearest connected ancestor with `onError`:
+
+```jsx
+function RiskyWidget({ data }) {
+  // If this throws, the error bubbles to ConnectedApp's onError
+  return <div>{data.value.toFixed(2)}</div>;
+}
+
+function App({ data }) {
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      <RiskyWidget data={data} />
+    </div>
+  );
+}
+
+const ConnectedApp = connect(
+  { data: dataStore.select((s) => s.data) },
+  {
+    onError: ({ error }) => <p>Something went wrong: {error.message}</p>,
+  }
+)(App);
+```
+
+See [Lifecycle](./lifecycle.md) for the full `onError` API.
