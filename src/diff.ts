@@ -1,4 +1,5 @@
-import { TEXT_NODE } from './vnode.js';
+import { TEXT_NODE } from './vnode';
+import type { VNode } from './vnode';
 
 export const PATCH = {
   CREATE:  'CREATE',
@@ -7,11 +8,26 @@ export const PATCH = {
   UPDATE:  'UPDATE',
   TEXT:    'TEXT',
   MOVE:    'MOVE',
-};
+} as const;
 
-export function diff(oldVNode, newVNode) {
+export type PatchType = typeof PATCH[keyof typeof PATCH];
+
+export interface PropPatches {
+  set: Record<string, any>;
+  remove: string[];
+}
+
+export type Patch =
+  | { type: typeof PATCH.CREATE; newVNode: VNode; anchor?: VNode | null }
+  | { type: typeof PATCH.REMOVE; target: VNode }
+  | { type: typeof PATCH.REPLACE; oldVNode: VNode; newVNode: VNode }
+  | { type: typeof PATCH.UPDATE; target: VNode; propPatches: PropPatches }
+  | { type: typeof PATCH.TEXT; oldVNode: VNode; newVNode: VNode }
+  | { type: typeof PATCH.MOVE; vnode: VNode; anchor: VNode | null; childPatches: Patch[] };
+
+export function diff(oldVNode: VNode | null, newVNode: VNode | null): Patch[] {
   if (newVNode == null && oldVNode == null) return [];
-  if (newVNode == null) return [{ type: PATCH.REMOVE, target: oldVNode }];
+  if (newVNode == null) return [{ type: PATCH.REMOVE, target: oldVNode! }];
   if (oldVNode == null) return [{ type: PATCH.CREATE, newVNode }];
 
   if (oldVNode.type !== newVNode.type) {
@@ -28,7 +44,7 @@ export function diff(oldVNode, newVNode) {
     return [];
   }
 
-  const patches = [];
+  const patches: Patch[] = [];
 
   const propPatches = diffProps(oldVNode.props, newVNode.props);
   if (propPatches) {
@@ -41,9 +57,12 @@ export function diff(oldVNode, newVNode) {
   return patches;
 }
 
-function diffProps(oldProps, newProps) {
-  const set = {};
-  const remove = [];
+function diffProps(
+  oldProps: Record<string, any>,
+  newProps: Record<string, any>,
+): PropPatches | null {
+  const set: Record<string, any> = {};
+  const remove: string[] = [];
   let hasChanges = false;
 
   for (const key in newProps) {
@@ -65,13 +84,13 @@ function diffProps(oldProps, newProps) {
   return hasChanges ? { set, remove } : null;
 }
 
-function sameVNode(a, b) {
+function sameVNode(a: VNode | null, b: VNode | null): boolean {
   if (a == null || b == null) return false;
   return a.type === b.type && a.key === b.key;
 }
 
-function diffChildren(oldChildren, newChildren) {
-  const patches = [];
+function diffChildren(oldChildren: (VNode | null)[], newChildren: VNode[]): Patch[] {
+  const patches: Patch[] = [];
 
   let oldStartIdx = 0;
   let oldEndIdx = oldChildren.length - 1;
@@ -105,7 +124,7 @@ function diffChildren(oldChildren, newChildren) {
     } else if (sameVNode(oldStartVNode, newEndVNode)) {
       patches.push({
         type: PATCH.MOVE,
-        vnode: oldStartVNode,
+        vnode: oldStartVNode!,
         anchor: oldChildren[oldEndIdx + 1] || null,
         childPatches: diff(oldStartVNode, newEndVNode),
       });
@@ -114,7 +133,7 @@ function diffChildren(oldChildren, newChildren) {
     } else if (sameVNode(oldEndVNode, newStartVNode)) {
       patches.push({
         type: PATCH.MOVE,
-        vnode: oldEndVNode,
+        vnode: oldEndVNode!,
         anchor: oldStartVNode,
         childPatches: diff(oldEndVNode, newStartVNode),
       });
@@ -128,7 +147,7 @@ function diffChildren(oldChildren, newChildren) {
 
   // Phase 2: key-map fallback for remaining nodes
   if (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
-    const keyMap = new Map();
+    const keyMap = new Map<string | number, number>();
     for (let i = oldStartIdx; i <= oldEndIdx; i++) {
       const key = oldChildren[i]?.key;
       if (key != null) keyMap.set(key, i);
@@ -141,7 +160,7 @@ function diffChildren(oldChildren, newChildren) {
         : undefined;
 
       if (oldIdx !== undefined) {
-        const matchedOld = oldChildren[oldIdx];
+        const matchedOld = oldChildren[oldIdx]!;
         patches.push({
           type: PATCH.MOVE,
           vnode: matchedOld,
@@ -149,7 +168,7 @@ function diffChildren(oldChildren, newChildren) {
           childPatches: diff(matchedOld, newStartVNode),
         });
         oldChildren[oldIdx] = null;
-        keyMap.delete(newStartVNode.key);
+        keyMap.delete(newStartVNode.key!);
       } else {
         patches.push({
           type: PATCH.CREATE,
@@ -163,7 +182,7 @@ function diffChildren(oldChildren, newChildren) {
     // Remove unconsumed old children
     for (let i = oldStartIdx; i <= oldEndIdx; i++) {
       if (oldChildren[i] != null) {
-        patches.push({ type: PATCH.REMOVE, target: oldChildren[i] });
+        patches.push({ type: PATCH.REMOVE, target: oldChildren[i]! });
       }
     }
   }
@@ -177,7 +196,7 @@ function diffChildren(oldChildren, newChildren) {
   } else if (newStartIdx > newEndIdx) {
     for (let i = oldStartIdx; i <= oldEndIdx; i++) {
       if (oldChildren[i] != null) {
-        patches.push({ type: PATCH.REMOVE, target: oldChildren[i] });
+        patches.push({ type: PATCH.REMOVE, target: oldChildren[i]! });
       }
     }
   }

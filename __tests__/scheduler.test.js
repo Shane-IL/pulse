@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { scheduleUpdate, flushSync } from '../src/scheduler.js';
+import { scheduleUpdate, flushSync } from '../src/scheduler';
 
 describe('scheduler', () => {
   it('flushSync executes callbacks synchronously', () => {

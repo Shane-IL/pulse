@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { h, Fragment } from '../src/createElement.js';
-import { TEXT_NODE, FRAGMENT } from '../src/vnode.js';
+import { h, Fragment } from '../src/createElement';
+import { TEXT_NODE, FRAGMENT } from '../src/vnode';
 
 describe('h (createElement)', () => {
   it('creates an element vnode', () => {

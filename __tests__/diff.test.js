@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { diff, PATCH } from '../src/diff.js';
-import { h } from '../src/createElement.js';
-import { TEXT_NODE, createTextVNode } from '../src/vnode.js';
+import { diff, PATCH } from '../src/diff';
+import { h } from '../src/createElement';
+import { TEXT_NODE, createTextVNode } from '../src/vnode';
 
 describe('diff', () => {
   it('null -> vnode produces CREATE', () => {

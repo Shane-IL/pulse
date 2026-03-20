@@ -1,20 +1,28 @@
-import { diff, PATCH } from './diff.js';
-import { createDOMNode, applyPatches, applyProps } from './patch.js';
-import { CONNECTED, ComponentInstance } from './connect.js';
-import { TEXT_NODE, FRAGMENT } from './vnode.js';
+import { diff, PATCH } from './diff';
+import { createDOMNode, applyPatches } from './patch';
+import { CONNECTED, ComponentInstance } from './connect';
+import { TEXT_NODE, FRAGMENT } from './vnode';
+import type { VNode } from './vnode';
+import type { Patch } from './diff';
 
-const roots = new WeakMap();
+interface RootEntry {
+  vTree: VNode;
+}
 
-export function render(vnode, container) {
+const roots = new WeakMap<Node, RootEntry>();
+
+export function render(vnode: VNode, container: Node): void {
   const prev = roots.get(container);
 
   if (!prev) {
     // First mount
     const expanded = expand(vnode, container);
+    if (!expanded) return;
+
     const dom = createDOMNode(expanded);
     container.appendChild(dom);
 
-    const instances = [];
+    const instances: ComponentInstance[] = [];
     collectInstances(expanded, instances);
     for (const inst of instances) {
       inst.mount(container, () => reRenderInstance(inst, container));
@@ -25,14 +33,14 @@ export function render(vnode, container) {
     // Update
     const expanded = expand(vnode, container);
 
-    const oldInstances = [];
+    const oldInstances: ComponentInstance[] = [];
     collectInstances(prev.vTree, oldInstances);
 
     const patches = diff(prev.vTree, expanded);
     applyPatches(container, patches);
 
-    const newInstances = [];
-    collectInstances(expanded, newInstances);
+    const newInstances: ComponentInstance[] = [];
+    if (expanded) collectInstances(expanded, newInstances);
 
     // Unmount removed instances
     const newSet = new Set(newInstances);
@@ -50,15 +58,15 @@ export function render(vnode, container) {
       }
     }
 
-    roots.set(container, { vTree: expanded });
+    roots.set(container, { vTree: expanded! });
   }
 }
 
-function expand(vnode, parentDom) {
+function expand(vnode: VNode | null, parentDom: Node): VNode | null {
   if (vnode == null) return null;
 
   if (typeof vnode.type === 'function') {
-    if (vnode.type[CONNECTED]) {
+    if ((vnode.type as any)[CONNECTED]) {
       // Connected component
       const instance = new ComponentInstance(vnode.type, vnode.props);
       const childVNode = vnode.type(vnode.props);
@@ -81,13 +89,13 @@ function expand(vnode, parentDom) {
   if (vnode.children?.length) {
     vnode.children = vnode.children
       .map(child => expand(child, parentDom))
-      .filter(c => c != null);
+      .filter((c): c is VNode => c != null);
   }
 
   return vnode;
 }
 
-function reRenderInstance(instance, parentDom) {
+function reRenderInstance(instance: ComponentInstance, parentDom: Node): void {
   const connectedFn = instance.connectedFn;
   const newVNode = connectedFn(instance.props);
   const newExpanded = expand(newVNode, parentDom);
@@ -121,7 +129,7 @@ function reRenderInstance(instance, parentDom) {
   instance.updateSelected();
 }
 
-function unmountSubtree(vnode) {
+function unmountSubtree(vnode: VNode | null): void {
   if (!vnode) return;
   if (vnode._instance) vnode._instance.unmount();
   if (vnode.children) {
@@ -131,7 +139,7 @@ function unmountSubtree(vnode) {
   }
 }
 
-function collectInstances(vnode, result) {
+function collectInstances(vnode: VNode | null, result: ComponentInstance[]): void {
   if (!vnode) return;
   if (vnode._instance) result.push(vnode._instance);
   if (vnode.children) {

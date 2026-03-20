@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
-import { connect, CONNECTED, ComponentInstance, shallowEqual } from '../src/connect.js';
-import { createStore } from '../src/store.js';
-import { flushSync } from '../src/scheduler.js';
+import { connect, CONNECTED, ComponentInstance, shallowEqual } from '../src/connect';
+import { createStore } from '../src/store';
+import { flushSync } from '../src/scheduler';
 
 describe('connect', () => {
   it('returns a function', () => {

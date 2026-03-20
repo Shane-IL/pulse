@@ -1,13 +1,17 @@
-import { scheduleUpdate } from './scheduler.js';
+import { scheduleUpdate } from './scheduler';
+import type { VNode, Bindings, Lifecycle, ComponentFunction } from './vnode';
 
-export const CONNECTED = Symbol('PULSE_CONNECTED');
+export const CONNECTED: unique symbol = Symbol('PULSE_CONNECTED');
 
-export function connect(bindings, lifecycle) {
-  return function wrapComponent(Component) {
+export function connect(
+  bindings: Bindings | null | undefined,
+  lifecycle?: Lifecycle,
+) {
+  return function wrapComponent(Component: ComponentFunction) {
     const b = bindings || {};
 
-    function ConnectedComponent(props) {
-      const selectedProps = {};
+    function ConnectedComponent(props: Record<string, any>): VNode | null {
+      const selectedProps: Record<string, any> = {};
       for (const propName in b) {
         const { store, selector } = b[propName];
         selectedProps[propName] = selector(store.getState());
@@ -15,19 +19,28 @@ export function connect(bindings, lifecycle) {
       return Component({ ...selectedProps, ...props });
     }
 
-    ConnectedComponent[CONNECTED] = true;
-    ConnectedComponent._bindings = b;
-    ConnectedComponent._innerComponent = Component;
-    if (lifecycle) ConnectedComponent._lifecycle = lifecycle;
+    (ConnectedComponent as any)[CONNECTED] = true;
+    (ConnectedComponent as any)._bindings = b;
+    (ConnectedComponent as any)._innerComponent = Component;
+    if (lifecycle) (ConnectedComponent as any)._lifecycle = lifecycle;
     ConnectedComponent.displayName =
-      `Connected(${Component.displayName || Component.name || 'Anonymous'})`;
+      `Connected(${(Component as any).displayName || Component.name || 'Anonymous'})`;
 
     return ConnectedComponent;
   };
 }
 
 export class ComponentInstance {
-  constructor(connectedFn, props) {
+  connectedFn: ComponentFunction;
+  props: Record<string, any>;
+  prevSelected: Record<string, any>;
+  unsubscribers: (() => void)[];
+  lastVTree: VNode | null;
+  parentDom: Node | null;
+  _renderCallback: (() => void) | null;
+  _mountCleanup: (() => void) | null;
+
+  constructor(connectedFn: ComponentFunction, props: Record<string, any>) {
     this.connectedFn = connectedFn;
     this.props = props;
     this.prevSelected = {};
@@ -38,11 +51,11 @@ export class ComponentInstance {
     this._mountCleanup = null;
   }
 
-  mount(parentDom, renderCallback) {
+  mount(parentDom: Node, renderCallback: () => void): void {
     this.parentDom = parentDom;
     this._renderCallback = renderCallback;
 
-    const bindings = this.connectedFn._bindings;
+    const bindings: Bindings = (this.connectedFn as any)._bindings;
 
     for (const propName in bindings) {
       const { store, selector } = bindings[propName];
@@ -58,7 +71,7 @@ export class ComponentInstance {
     }
 
     // Lifecycle: call onMount after subscriptions are live
-    const lifecycle = this.connectedFn._lifecycle;
+    const lifecycle: Lifecycle | undefined = (this.connectedFn as any)._lifecycle;
     if (lifecycle?.onMount) {
       const cleanup = lifecycle.onMount({
         dom: this.lastVTree?._dom,
@@ -70,8 +83,8 @@ export class ComponentInstance {
     }
   }
 
-  _onStoreChange() {
-    const bindings = this.connectedFn._bindings;
+  _onStoreChange(): void {
+    const bindings: Bindings = (this.connectedFn as any)._bindings;
     let changed = false;
 
     for (const propName in bindings) {
@@ -84,25 +97,25 @@ export class ComponentInstance {
     }
 
     if (changed) {
-      scheduleUpdate(this._renderCallback);
+      scheduleUpdate(this._renderCallback!);
     }
   }
 
-  updateSelected() {
-    const bindings = this.connectedFn._bindings;
+  updateSelected(): void {
+    const bindings: Bindings = (this.connectedFn as any)._bindings;
     for (const propName in bindings) {
       const { store, selector } = bindings[propName];
       this.prevSelected[propName] = selector(store.getState());
     }
   }
 
-  unmount() {
+  unmount(): void {
     // Lifecycle: cleanup from onMount, then onDestroy
     if (this._mountCleanup) {
       this._mountCleanup();
       this._mountCleanup = null;
     }
-    const lifecycle = this.connectedFn._lifecycle;
+    const lifecycle: Lifecycle | undefined = (this.connectedFn as any)._lifecycle;
     if (lifecycle?.onDestroy) {
       lifecycle.onDestroy({ props: this.props });
     }
@@ -115,7 +128,7 @@ export class ComponentInstance {
   }
 }
 
-export function shallowEqual(a, b) {
+export function shallowEqual(a: any, b: any): boolean {
   if (Object.is(a, b)) return true;
   if (typeof a !== 'object' || typeof b !== 'object') return false;
   if (a === null || b === null) return false;

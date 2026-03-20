@@ -1,7 +1,9 @@
-import { TEXT_NODE, FRAGMENT } from './vnode.js';
-import { PATCH } from './diff.js';
+import { TEXT_NODE, FRAGMENT } from './vnode';
+import { PATCH } from './diff';
+import type { VNode } from './vnode';
+import type { Patch } from './diff';
 
-export function createDOMNode(vnode) {
+export function createDOMNode(vnode: VNode): Node {
   if (vnode.type === TEXT_NODE) {
     const textNode = document.createTextNode(vnode.props.nodeValue);
     vnode._dom = textNode;
@@ -18,7 +20,7 @@ export function createDOMNode(vnode) {
     return frag;
   }
 
-  const el = document.createElement(vnode.type);
+  const el = document.createElement(vnode.type as string);
   applyProps(el, {}, vnode.props);
 
   for (const child of vnode.children) {
@@ -29,7 +31,11 @@ export function createDOMNode(vnode) {
   return el;
 }
 
-export function applyProps(el, oldProps, newProps) {
+export function applyProps(
+  el: HTMLElement,
+  oldProps: Record<string, any>,
+  newProps: Record<string, any>,
+): void {
   for (const key in oldProps) {
     if (key === 'children' || key === 'key') continue;
     if (!(key in newProps)) {
@@ -44,7 +50,7 @@ export function applyProps(el, oldProps, newProps) {
   }
 }
 
-function setProp(el, key, value, oldValue) {
+function setProp(el: HTMLElement, key: string, value: any, oldValue: any): void {
   if (key.startsWith('on')) {
     const eventName = key.slice(2).toLowerCase();
     if (oldValue) el.removeEventListener(eventName, oldValue);
@@ -54,7 +60,7 @@ function setProp(el, key, value, oldValue) {
   } else if (key === 'style' && typeof value === 'object') {
     if (typeof oldValue === 'object' && oldValue) {
       for (const prop in oldValue) {
-        if (!(prop in value)) el.style[prop] = '';
+        if (!(prop in value)) (el.style as any)[prop] = '';
       }
     }
     Object.assign(el.style, value);
@@ -69,7 +75,7 @@ function setProp(el, key, value, oldValue) {
   }
 }
 
-function removeProp(el, key, oldValue) {
+function removeProp(el: HTMLElement, key: string, oldValue: any): void {
   if (key.startsWith('on')) {
     el.removeEventListener(key.slice(2).toLowerCase(), oldValue);
   } else if (key === 'className') {
@@ -79,7 +85,7 @@ function removeProp(el, key, oldValue) {
   }
 }
 
-export function applyPatches(parentDom, patches) {
+export function applyPatches(parentDom: Node, patches: Patch[]): void {
   for (const patch of patches) {
     switch (patch.type) {
       case PATCH.CREATE: {
@@ -110,7 +116,7 @@ export function applyPatches(parentDom, patches) {
       }
 
       case PATCH.UPDATE: {
-        const dom = patch.target._dom;
+        const dom = patch.target._dom as HTMLElement;
         const { set, remove } = patch.propPatches;
         for (const key of remove) {
           removeProp(dom, key, patch.target.props[key]);
@@ -123,18 +129,20 @@ export function applyPatches(parentDom, patches) {
 
       case PATCH.TEXT: {
         const dom = patch.oldVNode._dom;
-        dom.nodeValue = patch.newVNode.props.nodeValue;
+        if (dom) dom.nodeValue = patch.newVNode.props.nodeValue;
         break;
       }
 
       case PATCH.MOVE: {
         const dom = patch.vnode._dom;
-        if (patch.anchor?._dom) {
-          parentDom.insertBefore(dom, patch.anchor._dom);
-        } else {
-          parentDom.appendChild(dom);
+        if (dom) {
+          if (patch.anchor?._dom) {
+            parentDom.insertBefore(dom, patch.anchor._dom);
+          } else {
+            parentDom.appendChild(dom);
+          }
         }
-        if (patch.childPatches?.length) {
+        if (patch.childPatches?.length && dom) {
           applyPatches(dom, patch.childPatches);
         }
         break;

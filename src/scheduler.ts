@@ -1,7 +1,7 @@
 let pending = false;
-const queue = new Set();
+const queue = new Set<() => void>();
 
-export function scheduleUpdate(callback) {
+export function scheduleUpdate(callback: () => void): void {
   queue.add(callback);
   if (!pending) {
     pending = true;
@@ -9,7 +9,7 @@ export function scheduleUpdate(callback) {
   }
 }
 
-function flush() {
+function flush(): void {
   const batch = [...queue];
   queue.clear();
   pending = false;
@@ -18,7 +18,7 @@ function flush() {
   }
 }
 
-export function flushSync() {
+export function flushSync(): void {
   const batch = [...queue];
   queue.clear();
   pending = false;

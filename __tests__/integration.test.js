@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { h, createStore, connect, render, flushSync } from '../src/index.js';
+import { h, createStore, connect, render, flushSync } from '../src/index';
 
 describe('integration: store -> connect -> render', () => {
   it('counter example works end to end', () => {

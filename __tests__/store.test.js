@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { createStore } from '../src/store.js';
+import { createStore } from '../src/store';
 
 function makeCounter() {
   return createStore({

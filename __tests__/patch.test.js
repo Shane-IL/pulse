@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
-import { createDOMNode, applyProps, applyPatches } from '../src/patch.js';
-import { h } from '../src/createElement.js';
-import { createTextVNode } from '../src/vnode.js';
-import { PATCH } from '../src/diff.js';
+import { createDOMNode, applyProps, applyPatches } from '../src/patch';
+import { h } from '../src/createElement';
+import { createTextVNode } from '../src/vnode';
+import { PATCH } from '../src/diff';
 
 describe('createDOMNode', () => {
   it('creates a DOM element from element vnode', () => {

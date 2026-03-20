@@ -115,14 +115,14 @@ my-app/
 ├── src/
 │   ├── main.jsx              # entry — render(<App />, ...)
 │   ├── stores/
-│   │   ├── counter.js         # createStore({ state, actions })
-│   │   └── user.js
+│   │   ├── counter.ts         # createStore({ state, actions })
+│   │   └── user.ts
 │   └── components/
-│       ├── App.jsx            # root component
-│       ├── Counter.jsx        # pure view function
-│       └── UserCard.jsx
+│       ├── App.tsx             # root component
+│       ├── Counter.tsx         # pure view function
+│       └── UserCard.tsx
 ├── index.html
-├── jsconfig.json              # jsxFactory: "h"
+├── tsconfig.json               # jsxFactory: "h"
 └── package.json
 ```
 

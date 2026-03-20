@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { render } from '../src/render.js';
-import { h, Fragment } from '../src/createElement.js';
+import { render } from '../src/render';
+import { h, Fragment } from '../src/createElement';
 
 describe('render', () => {
   it('mounts an element to container', () => {
