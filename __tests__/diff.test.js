@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { diff, PATCH } from '../src/diff';
 import { h } from '../src/createElement';
 import { TEXT_NODE, createTextVNode } from '../src/vnode';
@@ -117,5 +117,79 @@ describe('diff children', () => {
     const patches = diff(old, next);
     const removes = patches.filter(p => p.type === PATCH.REMOVE);
     expect(removes).toHaveLength(1);
+  });
+});
+
+describe('child key warnings', () => {
+  it('warns on duplicate keys in new children', () => {
+    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const old = h('div', null);
+    const next = h('div', null,
+      h('span', { key: 'a' }),
+      h('span', { key: 'a' }),
+    );
+    diff(old, next);
+    expect(spy).toHaveBeenCalledWith(expect.stringContaining('Duplicate key "a"'));
+    spy.mockRestore();
+  });
+
+  it('warns on duplicate keys in old children', () => {
+    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const old = h('div', null,
+      h('span', { key: 'x' }),
+      h('span', { key: 'x' }),
+    );
+    const next = h('div', null, h('span', { key: 'x' }));
+    diff(old, next);
+    expect(spy).toHaveBeenCalledWith(expect.stringContaining('Duplicate key "x"'));
+    spy.mockRestore();
+  });
+
+  it('warns on mixed keyed and unkeyed children', () => {
+    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const old = h('div', null);
+    const next = h('div', null,
+      h('span', { key: 'a' }),
+      h('span', null),
+    );
+    diff(old, next);
+    expect(spy).toHaveBeenCalledWith(expect.stringContaining('Mixed keyed and unkeyed'));
+    spy.mockRestore();
+  });
+
+  it('does not warn when all children are keyed', () => {
+    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const old = h('div', null, h('span', { key: 'a' }));
+    const next = h('div', null, h('span', { key: 'a' }), h('span', { key: 'b' }));
+    diff(old, next);
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it('does not warn when all children are unkeyed', () => {
+    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const old = h('div', null, h('span', null));
+    const next = h('div', null, h('span', null), h('p', null));
+    diff(old, next);
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it('does not warn for empty children', () => {
+    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    diff(h('div', null), h('div', null));
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it('handles numeric key 0 correctly (not treated as null)', () => {
+    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const next = h('div', null,
+      h('span', { key: 0 }),
+      h('span', { key: 1 }),
+    );
+    diff(h('div', null), next);
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
   });
 });

@@ -89,7 +89,42 @@ function sameVNode(a: VNode | null, b: VNode | null): boolean {
   return a.type === b.type && a.key === b.key;
 }
 
+function warnChildKeys(children: (VNode | null)[], label: string): void {
+  const seen = new Set<string | number>();
+  let keyedCount = 0;
+  let unkeyedCount = 0;
+
+  for (const child of children) {
+    if (child == null) continue;
+    if (child.key != null) {
+      keyedCount++;
+      if (seen.has(child.key)) {
+        console.warn(
+          `[pulse] Duplicate key "${String(child.key)}" in ${label} children. ` +
+          `Keys must be unique among siblings.`,
+        );
+      }
+      seen.add(child.key);
+    } else {
+      unkeyedCount++;
+    }
+  }
+
+  if (keyedCount > 0 && unkeyedCount > 0) {
+    console.warn(
+      `[pulse] Mixed keyed and unkeyed children in ${label} list ` +
+      `(${keyedCount} keyed, ${unkeyedCount} unkeyed). ` +
+      `Either all children should have keys or none should.`,
+    );
+  }
+}
+
 function diffChildren(oldChildren: (VNode | null)[], newChildren: VNode[]): Patch[] {
+  if (process.env.NODE_ENV !== 'production') {
+    warnChildKeys(oldChildren, 'old');
+    warnChildKeys(newChildren, 'new');
+  }
+
   const patches: Patch[] = [];
 
   let oldStartIdx = 0;

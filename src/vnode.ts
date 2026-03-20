@@ -23,6 +23,8 @@ export interface Bindings {
 
 export interface Lifecycle {
   onMount?: (ctx: { dom: Node | null | undefined; props: Record<string, any> }) => void | (() => void);
+  onUpdate?: (ctx: { dom: Node | null | undefined; props: Record<string, any> }) => void;
+  onError?: (ctx: { error: unknown; props: Record<string, any> }) => VNode | null;
   onDestroy?: (ctx: { props: Record<string, any> }) => void;
 }
 
