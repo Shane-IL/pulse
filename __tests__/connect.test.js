@@ -89,6 +89,93 @@ describe('ComponentInstance', () => {
   });
 });
 
+describe('lifecycle callbacks', () => {
+  it('onMount is called when mount() is invoked', () => {
+    const onMount = vi.fn();
+    const Connected = connect({}, { onMount })(function V() { return null; });
+    const instance = new ComponentInstance(Connected, {});
+    instance.lastVTree = { _dom: document.createElement('div') };
+
+    instance.mount(document.createElement('div'), vi.fn());
+
+    expect(onMount).toHaveBeenCalledTimes(1);
+  });
+
+  it('onMount receives { dom, props }', () => {
+    const onMount = vi.fn();
+    const dom = document.createElement('span');
+    const Connected = connect({}, { onMount })(function V() { return null; });
+    const instance = new ComponentInstance(Connected, { id: 42 });
+    instance.lastVTree = { _dom: dom };
+
+    instance.mount(document.createElement('div'), vi.fn());
+
+    expect(onMount).toHaveBeenCalledWith({ dom, props: { id: 42 } });
+  });
+
+  it('onMount cleanup function is called on unmount', () => {
+    const cleanup = vi.fn();
+    const onMount = vi.fn(() => cleanup);
+    const Connected = connect({}, { onMount })(function V() { return null; });
+    const instance = new ComponentInstance(Connected, {});
+    instance.lastVTree = { _dom: document.createElement('div') };
+
+    instance.mount(document.createElement('div'), vi.fn());
+    expect(cleanup).not.toHaveBeenCalled();
+
+    instance.unmount();
+    expect(cleanup).toHaveBeenCalledTimes(1);
+  });
+
+  it('onDestroy is called on unmount', () => {
+    const onDestroy = vi.fn();
+    const Connected = connect({}, { onDestroy })(function V() { return null; });
+    const instance = new ComponentInstance(Connected, { x: 1 });
+    instance.lastVTree = { _dom: document.createElement('div') };
+
+    instance.mount(document.createElement('div'), vi.fn());
+    instance.unmount();
+
+    expect(onDestroy).toHaveBeenCalledWith({ props: { x: 1 } });
+  });
+
+  it('cleanup runs before onDestroy', () => {
+    const order = [];
+    const cleanup = vi.fn(() => order.push('cleanup'));
+    const onMount = vi.fn(() => cleanup);
+    const onDestroy = vi.fn(() => order.push('destroy'));
+    const Connected = connect({}, { onMount, onDestroy })(function V() { return null; });
+    const instance = new ComponentInstance(Connected, {});
+    instance.lastVTree = { _dom: document.createElement('div') };
+
+    instance.mount(document.createElement('div'), vi.fn());
+    instance.unmount();
+
+    expect(order).toEqual(['cleanup', 'destroy']);
+  });
+
+  it('works without lifecycle (backward compatible)', () => {
+    const store = createStore({ state: { x: 1 }, actions: {} });
+    const Connected = connect({ x: store.select(s => s.x) })(function V() { return null; });
+    const instance = new ComponentInstance(Connected, {});
+
+    // Should not throw
+    instance.mount(document.createElement('div'), vi.fn());
+    instance.unmount();
+  });
+
+  it('onMount non-function return is ignored', () => {
+    const onMount = vi.fn(() => 'not a function');
+    const Connected = connect({}, { onMount })(function V() { return null; });
+    const instance = new ComponentInstance(Connected, {});
+    instance.lastVTree = { _dom: document.createElement('div') };
+
+    instance.mount(document.createElement('div'), vi.fn());
+    // Should not throw on unmount
+    instance.unmount();
+  });
+});
+
 describe('shallowEqual', () => {
   it('returns true for identical values', () => {
     expect(shallowEqual(1, 1)).toBe(true);

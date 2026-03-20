@@ -1,4 +1,4 @@
-import { diff } from './diff.js';
+import { diff, PATCH } from './diff.js';
 import { createDOMNode, applyPatches, applyProps } from './patch.js';
 import { CONNECTED, ComponentInstance } from './connect.js';
 import { TEXT_NODE, FRAGMENT } from './vnode.js';
@@ -99,6 +99,15 @@ function reRenderInstance(instance, parentDom) {
     const domParent = instance.lastVTree._dom?.parentNode || parentDom;
     applyPatches(domParent, patches);
 
+    // Unmount child instances in removed/replaced subtrees
+    for (const patch of patches) {
+      if (patch.type === PATCH.REMOVE) {
+        unmountSubtree(patch.target);
+      } else if (patch.type === PATCH.REPLACE) {
+        unmountSubtree(patch.oldVNode);
+      }
+    }
+
     // Transfer the _dom reference from old to new
     if (!newExpanded._dom) {
       newExpanded._dom = instance.lastVTree._dom;
@@ -110,6 +119,16 @@ function reRenderInstance(instance, parentDom) {
   }
   instance.lastVTree = newExpanded;
   instance.updateSelected();
+}
+
+function unmountSubtree(vnode) {
+  if (!vnode) return;
+  if (vnode._instance) vnode._instance.unmount();
+  if (vnode.children) {
+    for (const child of vnode.children) {
+      unmountSubtree(child);
+    }
+  }
 }
 
 function collectInstances(vnode, result) {

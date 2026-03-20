@@ -2,20 +2,23 @@ import { scheduleUpdate } from './scheduler.js';
 
 export const CONNECTED = Symbol('PULSE_CONNECTED');
 
-export function connect(bindings) {
+export function connect(bindings, lifecycle) {
   return function wrapComponent(Component) {
+    const b = bindings || {};
+
     function ConnectedComponent(props) {
       const selectedProps = {};
-      for (const propName in bindings) {
-        const { store, selector } = bindings[propName];
+      for (const propName in b) {
+        const { store, selector } = b[propName];
         selectedProps[propName] = selector(store.getState());
       }
       return Component({ ...selectedProps, ...props });
     }
 
     ConnectedComponent[CONNECTED] = true;
-    ConnectedComponent._bindings = bindings;
+    ConnectedComponent._bindings = b;
     ConnectedComponent._innerComponent = Component;
+    if (lifecycle) ConnectedComponent._lifecycle = lifecycle;
     ConnectedComponent.displayName =
       `Connected(${Component.displayName || Component.name || 'Anonymous'})`;
 
@@ -32,6 +35,7 @@ export class ComponentInstance {
     this.lastVTree = null;
     this.parentDom = null;
     this._renderCallback = null;
+    this._mountCleanup = null;
   }
 
   mount(parentDom, renderCallback) {
@@ -51,6 +55,18 @@ export class ComponentInstance {
         this._onStoreChange();
       });
       this.unsubscribers.push(unsub);
+    }
+
+    // Lifecycle: call onMount after subscriptions are live
+    const lifecycle = this.connectedFn._lifecycle;
+    if (lifecycle?.onMount) {
+      const cleanup = lifecycle.onMount({
+        dom: this.lastVTree?._dom,
+        props: this.props,
+      });
+      if (typeof cleanup === 'function') {
+        this._mountCleanup = cleanup;
+      }
     }
   }
 
@@ -81,6 +97,16 @@ export class ComponentInstance {
   }
 
   unmount() {
+    // Lifecycle: cleanup from onMount, then onDestroy
+    if (this._mountCleanup) {
+      this._mountCleanup();
+      this._mountCleanup = null;
+    }
+    const lifecycle = this.connectedFn._lifecycle;
+    if (lifecycle?.onDestroy) {
+      lifecycle.onDestroy({ props: this.props });
+    }
+
     for (const unsub of this.unsubscribers) {
       unsub();
     }
