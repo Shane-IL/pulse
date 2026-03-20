@@ -13,7 +13,7 @@ A render-driven UI framework with virtual DOM and immutable stores. Like React, 
 ## Quick Start
 
 ```bash
-npm install pulse-ui
+npm install @shane_il/pulse
 ```
 
 Configure your JSX pragma (jsconfig.json, tsconfig.json, or Babel):
@@ -31,7 +31,7 @@ Configure your JSX pragma (jsconfig.json, tsconfig.json, or Babel):
 ## Example
 
 ```jsx
-import { h, createStore, connect, render } from 'pulse-ui';
+import { h, createStore, connect, render } from '@shane_il/pulse';
 
 // 1. Create a store
 const counterStore = createStore({
@@ -172,7 +172,7 @@ Groups children without adding a wrapper DOM node.
 Creates a store-based client-side router.
 
 ```jsx
-import { h, createRouter, render } from 'pulse-ui';
+import { h, createRouter, render } from '@shane_il/pulse';
 
 const router = createRouter({
   routes: [

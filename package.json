@@ -1,7 +1,16 @@
 {
-  "name": "pulse-ui",
+  "name": "@shane_il/pulse",
   "version": "0.1.0",
   "description": "A render-driven UI framework with virtual DOM and immutable stores",
+  "author": "Shane-IL",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Shane-IL/pulse.git"
+  },
+  "homepage": "https://github.com/Shane-IL/pulse#readme",
+  "bugs": {
+    "url": "https://github.com/Shane-IL/pulse/issues"
+  },
   "type": "module",
   "main": "./dist/pulse.cjs",
   "module": "./dist/pulse.js",
@@ -20,7 +29,8 @@
     "build": "vite build && tsc --declaration --emitDeclarationOnly",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepublishOnly": "npm test && npm run build"
   },
   "keywords": [
     "ui",
@@ -29,6 +39,7 @@
     "vdom",
     "jsx",
     "state-management",
+    "router",
     "pulse"
   ],
   "license": "MIT",

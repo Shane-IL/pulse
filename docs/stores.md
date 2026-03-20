@@ -5,7 +5,7 @@ Stores are the heart of Pulse. They hold immutable state, expose named actions f
 ## Creating a Store
 
 ```js
-import { createStore } from 'pulse-ui';
+import { createStore } from '@shane_il/pulse';
 
 const todoStore = createStore({
   state: {

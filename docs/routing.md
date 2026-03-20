@@ -5,7 +5,7 @@ Pulse includes a store-based client-side router. Routes are just store state —
 ## Creating a Router
 
 ```js
-import { createRouter } from 'pulse-ui';
+import { createRouter } from '@shane_il/pulse';
 
 const router = createRouter({
   routes: [
@@ -288,7 +288,7 @@ router.store.getState();
 ## Full Example
 
 ```jsx
-import { h, render, createRouter } from 'pulse-ui';
+import { h, render, createRouter } from '@shane_il/pulse';
 
 const router = createRouter({
   routes: [

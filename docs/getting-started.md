@@ -3,7 +3,7 @@
 ## Installation
 
 ```bash
-npm install pulse-ui
+npm install @shane_il/pulse
 ```
 
 ## JSX Setup
@@ -40,7 +40,7 @@ Pulse uses a custom JSX pragma. Configure your toolchain to use `h` as the facto
 > **Important:** Every file that uses JSX must import `h` (and `Fragment` if using `<>...</>`):
 >
 > ```js
-> import { h, Fragment } from 'pulse-ui';
+> import { h, Fragment } from '@shane_il/pulse';
 > ```
 
 ## Your First App
@@ -51,7 +51,7 @@ Stores hold your application state. They're standalone objects — no framework 
 
 ```js
 // stores/counter.js
-import { createStore } from 'pulse-ui';
+import { createStore } from '@shane_il/pulse';
 
 export const counterStore = createStore({
   state: { count: 0 },
@@ -69,7 +69,7 @@ Components are plain functions: `(props) => VNode`. No hooks, no `this`, no clas
 
 ```jsx
 // components/Counter.jsx
-import { h } from 'pulse-ui';
+import { h } from '@shane_il/pulse';
 import { counterStore } from '../stores/counter';
 
 function Counter({ count }) {
@@ -88,7 +88,7 @@ function Counter({ count }) {
 `connect()` binds store state to a component via selectors. The component re-renders only when the selected values change.
 
 ```jsx
-import { connect } from 'pulse-ui';
+import { connect } from '@shane_il/pulse';
 import { counterStore } from '../stores/counter';
 
 const ConnectedCounter = connect({
@@ -100,7 +100,7 @@ const ConnectedCounter = connect({
 
 ```jsx
 // main.jsx
-import { h, render } from 'pulse-ui';
+import { h, render } from '@shane_il/pulse';
 import { ConnectedCounter } from './components/Counter';
 
 render(<ConnectedCounter />, document.getElementById('app'));
