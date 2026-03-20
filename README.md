@@ -91,9 +91,9 @@ Actions are pure functions: `(state, payload) => newState`. If an action returns
 
 Stores are standalone — they work outside of Pulse and can be shared across your app.
 
-### `connect(bindings)(Component)`
+### `connect(bindings, lifecycle?)(Component)`
 
-Connects a store's state to a component via selectors.
+Connects a store's state to a component via selectors, with optional lifecycle callbacks.
 
 ```js
 const Connected = connect({
@@ -106,6 +106,32 @@ const Connected = connect({
 - Re-renders only when selected values change (shallow equality).
 - Subscriptions are automatically managed (mount/unmount).
 - Multiple stores can be bound to a single component.
+
+#### Lifecycle Callbacks
+
+The optional second argument adds mount/destroy lifecycle hooks:
+
+```jsx
+const Timer = connect(
+  { elapsed: timerStore.select((s) => s.elapsed) },
+  {
+    onMount: ({ dom, props }) => {
+      // Called once after first render. DOM element is available.
+      const id = setInterval(() => timerStore.dispatch('tick'), 1000);
+      return () => clearInterval(id); // cleanup — called on destroy
+    },
+    onDestroy: ({ props }) => {
+      // Called when component is removed from the DOM.
+      console.log('Timer removed');
+    },
+  }
+)(TimerView);
+```
+
+- **`onMount({ dom, props })`** — fires once after first render. `dom` is the rendered DOM element. Can return a cleanup function that runs on destroy.
+- **`onDestroy({ props })`** — fires when the component is removed, after cleanup.
+- Re-renders do **not** re-trigger `onMount`.
+- For components that only need lifecycle (no store bindings), pass empty bindings: `connect({}, { onMount })(Component)`.
 
 ### `render(vnode, container)`
 
