@@ -1,7 +1,7 @@
 import { diff, PATCH } from './diff';
 import { createDOMNode, applyPatches } from './patch';
 import { CONNECTED, ComponentInstance } from './connect';
-import { TEXT_NODE, FRAGMENT } from './vnode';
+import { TEXT_NODE, FRAGMENT, createTextVNode } from './vnode';
 import type { VNode, Lifecycle } from './vnode';
 import type { Patch } from './diff';
 
@@ -75,12 +75,12 @@ function expand(vnode: VNode | null, parentDom: Node): VNode | null {
         const childVNode = vnode.type(vnode.props);
         const expanded = expand(childVNode, parentDom);
 
-        if (expanded) {
-          expanded._instance = instance;
-          instance.lastVTree = expanded;
-        }
+        // Use placeholder for null returns so instance stays in tree (subscribes)
+        const result = expanded ?? createTextVNode('');
+        result._instance = instance;
+        instance.lastVTree = result;
 
-        return expanded;
+        return result;
       } catch (error) {
         if (lifecycle?.onError) {
           const fallbackVNode = lifecycle.onError({ error, props: vnode.props });
@@ -111,9 +111,12 @@ function reRenderInstance(instance: ComponentInstance, parentDom: Node): void {
 
   try {
     const newVNode = connectedFn(instance.props);
-    const newExpanded = expand(newVNode, parentDom);
+    const rawExpanded = expand(newVNode, parentDom);
 
-    if (instance.lastVTree && newExpanded) {
+    // Use placeholder for null returns so instance stays in tree
+    const newExpanded = rawExpanded ?? createTextVNode('');
+
+    if (instance.lastVTree) {
       const patches = diff(instance.lastVTree, newExpanded);
 
       // Find the actual parent DOM node to patch against
@@ -136,9 +139,7 @@ function reRenderInstance(instance: ComponentInstance, parentDom: Node): void {
       }
     }
 
-    if (newExpanded) {
-      newExpanded._instance = instance;
-    }
+    newExpanded._instance = instance;
     instance.lastVTree = newExpanded;
 
     // Lifecycle: onUpdate fires after every re-render (not on initial mount)

@@ -21,6 +21,8 @@ patch.ts ←── vnode, diff                           │
     │                                              │
 render.ts ←── diff, patch, connect, vnode          │
     │                                              │
+router.ts ←── store, connect, createElement        │
+    │                                              │
 index.ts ←── barrel export ────────────────────────┘
 ```
 
@@ -264,4 +266,5 @@ These warnings are dead-code eliminated by Vite in production builds.
 | `src/patch.ts` | ~150 LOC | DOM creation and mutation |
 | `src/connect.ts` | ~150 LOC | `connect()` HOC, `ComponentInstance`, `shallowEqual` |
 | `src/render.ts` | ~205 LOC | `render()`, `expand()`, `reRenderInstance()`, error boundaries |
-| **Total** | **~890 LOC** | **~4 KB gzipped** |
+| `src/router.ts` | ~270 LOC | `createRouter()`, path matching, Route/Link/Redirect components |
+| **Total** | **~1160 LOC** | **~5 KB gzipped** |

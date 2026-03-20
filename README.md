@@ -7,7 +7,8 @@ A render-driven UI framework with virtual DOM and immutable stores. Like React, 
 - **No hooks.** All state lives in external stores. Components are `(props) => VNode`.
 - **Stores are first-class.** Create, import, and share stores anywhere. They're framework-agnostic.
 - **Render-driven.** Describe what the UI looks like for a given state. Pulse handles the rest.
-- **Tiny.** ~4 KB gzipped. Zero runtime dependencies.
+- **Built-in routing.** Store-based client-side router — routes are just state.
+- **Tiny.** ~5 KB gzipped. Zero runtime dependencies.
 
 ## Quick Start
 
@@ -165,6 +166,53 @@ Groups children without adding a wrapper DOM node.
   <span>b</span>
 </>
 ```
+
+### `createRouter({ routes, initialPath? })`
+
+Creates a store-based client-side router.
+
+```jsx
+import { h, createRouter, render } from 'pulse-ui';
+
+const router = createRouter({
+  routes: [
+    { path: '/' },
+    { path: '/users/:id' },
+    { path: '*' },
+  ],
+});
+
+const { Route, Link } = router;
+
+function App() {
+  return (
+    <div>
+      <nav>
+        <Link to="/">Home</Link>
+        <Link to="/users/1">User 1</Link>
+      </nav>
+      <Route path="/" component={Home} />
+      <Route path="/users/:id" component={UserProfile} />
+      <Route path="*" component={NotFound} />
+    </div>
+  );
+}
+
+render(<App />, document.getElementById('app'));
+```
+
+Returns a `Router` object with:
+
+- **`store`** — a Pulse store holding `{ path, params, query, matched }`. Connect any component to route state.
+- **`navigate(path)`** — push a new history entry and update the store.
+- **`redirect(path)`** — replace the current history entry (back button skips it).
+- **`back()` / `forward()`** — browser history navigation.
+- **`Route`** — connected component that renders its `component` prop when the path matches. Passes `params` to the component.
+- **`Link`** — renders an `<a>` with SPA navigation on click. Modifier clicks (Ctrl, Cmd) open in a new tab.
+- **`Redirect`** — performs a redirect when rendered.
+- **`destroy()`** — removes the `popstate` listener (for cleanup in tests).
+
+Path patterns support static paths (`/about`), dynamic params (`/users/:id`), wildcard suffixes (`/dashboard/*`), and catch-all (`*`).
 
 ### `flushSync()`
 
