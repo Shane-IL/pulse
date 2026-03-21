@@ -10,7 +10,9 @@ A render-driven UI framework with virtual DOM and immutable stores. Like React, 
 - **Stores are first-class.** Create, import, and share stores anywhere. They're framework-agnostic.
 - **Render-driven.** Describe what the UI looks like for a given state. Pulse handles the rest.
 - **Built-in routing.** Store-based client-side router — routes are just state.
-- **Tiny.** ~5 KB gzipped. Zero runtime dependencies.
+- **Middleware.** Pluggable middleware for logging, action history, and custom logic.
+- **Devtools.** Built-in browser devtools panel — store inspector, action replay, time-travel.
+- **Tiny.** ~6 KB gzipped core, ~9 KB devtools. Zero runtime dependencies.
 
 ## Quick Start
 
@@ -67,7 +69,7 @@ render(<ConnectedCounter />, document.getElementById('app'));
 
 ## API
 
-### `createStore({ state, actions })`
+### `createStore({ state, actions, name?, middleware? })`
 
 Creates an immutable state store.
 
@@ -93,6 +95,11 @@ unsub(); // unsubscribe
 Actions are pure functions: `(state, payload) => newState`. If an action returns the same reference (`===`), subscribers are not notified.
 
 Stores are standalone — they work outside of Pulse and can be shared across your app.
+
+Optional fields:
+
+- **`name`** — a display name for the store (used by devtools and logger middleware).
+- **`middleware`** — an array of middleware functions (see [Middleware](#middleware) below). When no middleware is provided, dispatch uses a zero-overhead fast path.
 
 ### `connect(bindings, lifecycle?)(Component)`
 
@@ -225,6 +232,119 @@ store.dispatch('increment');
 flushSync();
 // DOM is now updated
 ```
+
+## Middleware
+
+Middleware intercepts dispatches with an onion model — each middleware wraps the next, running code before and after the core action.
+
+```js
+import { createStore, logger, actionHistory } from '@shane_il/pulse';
+
+const history = [];
+const store = createStore({
+  name: 'counter',
+  state: { count: 0 },
+  actions: {
+    increment: (s) => ({ ...s, count: s.count + 1 }),
+    set: (s, v) => ({ ...s, count: v }),
+  },
+  middleware: [logger(), actionHistory(history)],
+});
+
+store.dispatch('increment');
+// Console: [pulse] increment  prev: {count: 0}  next: {count: 1}
+// history: [{ actionName: 'increment', prevState: ..., nextState: ..., timestamp: ... }]
+```
+
+### Built-in middleware
+
+- **`logger()`** — logs each dispatch with prev state, payload, and next state via `console.group`.
+- **`actionHistory(history[], opts?)`** — pushes `ActionEntry` objects to a caller-owned array. `opts.maxEntries` caps the size.
+
+### Custom middleware
+
+A middleware is `(ctx, next) => void`. Call `next()` to continue the chain, or skip it to block the action.
+
+```js
+const validator = (ctx, next) => {
+  if (ctx.actionName === 'set' && ctx.payload < 0) return; // block
+  next();
+};
+```
+
+`ctx` fields: `store`, `actionName`, `payload`, `prevState`, `nextState` (populated after `next()`).
+
+## Async Actions
+
+`createAsyncAction` wraps an async operation with loading/success/error dispatches.
+
+```js
+import { createStore, createAsyncAction } from '@shane_il/pulse';
+
+const store = createStore({
+  state: { items: [], loading: false, error: null },
+  actions: {
+    fetchStart: (s) => ({ ...s, loading: true, error: null }),
+    fetchOk:    (s, items) => ({ ...s, loading: false, items }),
+    fetchFail:  (s, error) => ({ ...s, loading: false, error }),
+  },
+});
+
+const loadItems = createAsyncAction(store, {
+  start: 'fetchStart',      // optional — dispatched immediately
+  run: (query) => api.getItems(query),  // your async work
+  ok: 'fetchOk',            // dispatched with the resolved value
+  fail: 'fetchFail',        // optional — dispatched with error message
+});
+
+await loadItems({ limit: 10 });
+```
+
+- `start` and `fail` are optional. Without `fail`, errors propagate normally.
+- Returns the resolved value from `run`.
+- The store stays synchronous and pure — `createAsyncAction` is just orchestration sugar.
+
+## Devtools
+
+A browser devtools panel for inspecting stores, replaying actions, and viewing the component tree. Built with Pulse itself.
+
+```bash
+npm install @shane_il/pulse  # devtools included as a subpath export
+```
+
+```js
+import { instrumentStore } from '@shane_il/pulse/devtools';
+import { openPanel } from '@shane_il/pulse/devtools';
+
+// Use instrumentStore instead of createStore — it adds action history + registers with devtools
+const store = instrumentStore({
+  name: 'todos',
+  state: { items: [] },
+  actions: {
+    add: (s, item) => ({ ...s, items: [...s.items, item] }),
+  },
+});
+
+openPanel(); // or press Ctrl+Shift+P
+```
+
+### Features
+
+- **Stores tab** — live state tree for all instrumented stores.
+- **Actions tab** — filterable action log with timestamps. Click any entry or use the slider to time-travel.
+- **Components tab** — lists all connected components and their store bindings.
+
+### API
+
+- **`instrumentStore(config)`** — creates a store with `actionHistory` middleware and registers it with devtools.
+- **`openPanel()` / `closePanel()` / `togglePanel()`** — control the overlay panel.
+- **`travelTo(devtools, storeName, index)`** — jump a store to a historical state.
+- **`replayFrom(devtools, storeName, index)`** — replay actions from a point forward.
+- **`devtools`** — the singleton `PulseDevtools` instance (also available as `window.__PULSE_DEVTOOLS__`).
+
+### Tree-shaking
+
+Devtools is a separate entry point (`@shane_il/pulse/devtools`). Apps that don't import it ship zero devtools code.
 
 ## How It Works
 

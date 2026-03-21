@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createStore } from '../src/store';
-import { logger, actionHistory } from '../src/middleware';
+import { logger, actionHistory, createAsyncAction } from '../src/middleware';
 
 function makeCounter(middleware) {
   return createStore({
@@ -241,5 +241,93 @@ describe('actionHistory middleware', () => {
     group.mockRestore();
     log.mockRestore();
     groupEnd.mockRestore();
+  });
+});
+
+describe('createAsyncAction', () => {
+  function makeAsyncStore() {
+    return createStore({
+      state: { items: [], loading: false, error: null },
+      actions: {
+        fetchStart: (s) => ({ ...s, loading: true, error: null }),
+        fetchOk: (s, items) => ({ ...s, loading: false, items }),
+        fetchFail: (s, error) => ({ ...s, loading: false, error }),
+      },
+    });
+  }
+
+  it('dispatches start then ok on success', async () => {
+    const store = makeAsyncStore();
+    const load = createAsyncAction(store, {
+      start: 'fetchStart',
+      run: async () => ['a', 'b'],
+      ok: 'fetchOk',
+    });
+
+    const promise = load();
+    expect(store.getState().loading).toBe(true);
+
+    await promise;
+    expect(store.getState().loading).toBe(false);
+    expect(store.getState().items).toEqual(['a', 'b']);
+  });
+
+  it('dispatches start then fail on error', async () => {
+    const store = makeAsyncStore();
+    const load = createAsyncAction(store, {
+      start: 'fetchStart',
+      run: async () => { throw new Error('network'); },
+      ok: 'fetchOk',
+      fail: 'fetchFail',
+    });
+
+    await load();
+    expect(store.getState().loading).toBe(false);
+    expect(store.getState().error).toBe('network');
+    expect(store.getState().items).toEqual([]);
+  });
+
+  it('throws if no fail action and run rejects', async () => {
+    const store = makeAsyncStore();
+    const load = createAsyncAction(store, {
+      run: async () => { throw new Error('boom'); },
+      ok: 'fetchOk',
+    });
+
+    await expect(load()).rejects.toThrow('boom');
+  });
+
+  it('start is optional', async () => {
+    const store = makeAsyncStore();
+    const load = createAsyncAction(store, {
+      run: async () => ['x'],
+      ok: 'fetchOk',
+    });
+
+    await load();
+    expect(store.getState().items).toEqual(['x']);
+    expect(store.getState().loading).toBe(false);
+  });
+
+  it('passes arguments to run', async () => {
+    const store = makeAsyncStore();
+    const load = createAsyncAction(store, {
+      run: async (query, limit) => [`${query}:${limit}`],
+      ok: 'fetchOk',
+    });
+
+    await load('test', 5);
+    expect(store.getState().items).toEqual(['test:5']);
+  });
+
+  it('returns the result from run', async () => {
+    const store = makeAsyncStore();
+    const load = createAsyncAction(store, {
+      run: async () => ['result'],
+      ok: 'fetchOk',
+    });
+
+    const result = await load();
+    expect(result).toEqual(['result']);
   });
 });

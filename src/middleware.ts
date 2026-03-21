@@ -34,6 +34,37 @@ export function logger(): Middleware {
 }
 
 /**
+ * Async action helper — wraps an async operation with loading/success/error dispatches.
+ */
+export interface AsyncActionConfig<S, R, A extends any[] = any[]> {
+  start?: string;
+  run: (...args: A) => Promise<R>;
+  ok: string;
+  fail?: string;
+}
+
+export function createAsyncAction<S, R, A extends any[] = any[]>(
+  store: Store<S>,
+  config: AsyncActionConfig<S, R, A>,
+): (...args: A) => Promise<R> {
+  return async (...args: A): Promise<R> => {
+    if (config.start) store.dispatch(config.start);
+    try {
+      const result = await config.run(...args);
+      store.dispatch(config.ok, result);
+      return result;
+    } catch (e: any) {
+      if (config.fail) {
+        store.dispatch(config.fail, e?.message ?? String(e));
+      } else {
+        throw e;
+      }
+      return undefined as any;
+    }
+  };
+}
+
+/**
  * Action history middleware — pushes entries to a caller-owned array.
  */
 export function actionHistory(
