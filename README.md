@@ -1,5 +1,7 @@
 # Pulse
 
+> **Note:** This is an experiment in iterative AI-assisted development — a "see if I could" project more than anything production-grade. The goal was to build something resembling pre-hooks React but without the lifecycle method mess: just pure render functions, external stores, and a clean connect API. Every commit was planned and written collaboratively with Claude Code.
+
 A render-driven UI framework with virtual DOM and immutable stores. Like React, but with no hooks — state stores are first-class citizens and components are pure render functions.
 
 ## Why Pulse?
