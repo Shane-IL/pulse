@@ -2,12 +2,13 @@ import { TEXT_NODE } from './vnode';
 import type { VNode } from './vnode';
 
 export const PATCH = {
-  CREATE:  'CREATE',
-  REMOVE:  'REMOVE',
-  REPLACE: 'REPLACE',
-  UPDATE:  'UPDATE',
-  TEXT:    'TEXT',
-  MOVE:    'MOVE',
+  CREATE:   'CREATE',
+  REMOVE:   'REMOVE',
+  REPLACE:  'REPLACE',
+  UPDATE:   'UPDATE',
+  TEXT:     'TEXT',
+  MOVE:     'MOVE',
+  CHILDREN: 'CHILDREN',
 } as const;
 
 export type PatchType = typeof PATCH[keyof typeof PATCH];
@@ -23,7 +24,8 @@ export type Patch =
   | { type: typeof PATCH.REPLACE; oldVNode: VNode; newVNode: VNode }
   | { type: typeof PATCH.UPDATE; target: VNode; propPatches: PropPatches }
   | { type: typeof PATCH.TEXT; oldVNode: VNode; newVNode: VNode }
-  | { type: typeof PATCH.MOVE; vnode: VNode; anchor: VNode | null; childPatches: Patch[] };
+  | { type: typeof PATCH.MOVE; vnode: VNode; anchor: VNode | null; childPatches: Patch[] }
+  | { type: typeof PATCH.CHILDREN; parent: VNode; childPatches: Patch[] };
 
 export function diff(oldVNode: VNode | null, newVNode: VNode | null): Patch[] {
   if (newVNode == null && oldVNode == null) return [];
@@ -52,7 +54,9 @@ export function diff(oldVNode: VNode | null, newVNode: VNode | null): Patch[] {
   }
 
   const childPatches = diffChildren(oldVNode.children, newVNode.children);
-  patches.push(...childPatches);
+  if (childPatches.length) {
+    patches.push({ type: PATCH.CHILDREN, parent: oldVNode, childPatches });
+  }
 
   return patches;
 }

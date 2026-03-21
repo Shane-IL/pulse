@@ -3,6 +3,16 @@ import { diff, PATCH } from '../src/diff';
 import { h } from '../src/createElement';
 import { TEXT_NODE, createTextVNode } from '../src/vnode';
 
+/** Recursively collect all patches of a given type, including inside CHILDREN. */
+function collectPatches(patches, type) {
+  const result = [];
+  for (const p of patches) {
+    if (p.type === type) result.push(p);
+    if (p.type === PATCH.CHILDREN) result.push(...collectPatches(p.childPatches, type));
+  }
+  return result;
+}
+
 describe('diff', () => {
   it('null -> vnode produces CREATE', () => {
     const vnode = h('div', null);
@@ -65,7 +75,7 @@ describe('diff children', () => {
     const old = h('div', null, h('span', { key: 'a' }), h('span', { key: 'b' }));
     const next = h('div', null, h('span', { key: 'a' }), h('span', { key: 'b' }), h('span', { key: 'c' }));
     const patches = diff(old, next);
-    const creates = patches.filter(p => p.type === PATCH.CREATE);
+    const creates = collectPatches(patches, PATCH.CREATE);
     expect(creates).toHaveLength(1);
   });
 
@@ -76,7 +86,7 @@ describe('diff children', () => {
     const old = h('div', null, a, b, c);
     const next = h('div', null, h('span', { key: 'a' }), h('span', { key: 'b' }));
     const patches = diff(old, next);
-    const removes = patches.filter(p => p.type === PATCH.REMOVE);
+    const removes = collectPatches(patches, PATCH.REMOVE);
     expect(removes).toHaveLength(1);
   });
 
@@ -84,7 +94,7 @@ describe('diff children', () => {
     const old = h('div', null);
     const next = h('div', null, h('span', null), h('p', null));
     const patches = diff(old, next);
-    const creates = patches.filter(p => p.type === PATCH.CREATE);
+    const creates = collectPatches(patches, PATCH.CREATE);
     expect(creates).toHaveLength(2);
   });
 
@@ -92,7 +102,7 @@ describe('diff children', () => {
     const old = h('div', null, h('span', null), h('p', null));
     const next = h('div', null);
     const patches = diff(old, next);
-    const removes = patches.filter(p => p.type === PATCH.REMOVE);
+    const removes = collectPatches(patches, PATCH.REMOVE);
     expect(removes).toHaveLength(2);
   });
 
@@ -100,7 +110,7 @@ describe('diff children', () => {
     const old = h('div', null, h('span', { key: 'a' }), h('span', { key: 'b' }));
     const next = h('div', null, h('span', { key: 'b' }), h('span', { key: 'a' }));
     const patches = diff(old, next);
-    const moves = patches.filter(p => p.type === PATCH.MOVE);
+    const moves = collectPatches(patches, PATCH.MOVE);
     expect(moves.length).toBeGreaterThan(0);
   });
 
@@ -115,7 +125,7 @@ describe('diff children', () => {
       h('span', { key: '3' }),
     );
     const patches = diff(old, next);
-    const removes = patches.filter(p => p.type === PATCH.REMOVE);
+    const removes = collectPatches(patches, PATCH.REMOVE);
     expect(removes).toHaveLength(1);
   });
 });

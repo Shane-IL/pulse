@@ -147,6 +147,14 @@ export function applyPatches(parentDom: Node, patches: Patch[]): void {
         }
         break;
       }
+
+      case PATCH.CHILDREN: {
+        const dom = patch.parent._dom;
+        if (dom && patch.childPatches.length) {
+          applyPatches(dom, patch.childPatches);
+        }
+        break;
+      }
     }
   }
 }

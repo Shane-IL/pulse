@@ -77,6 +77,21 @@ function expand(vnode: VNode | null, parentDom: Node): VNode | null {
 
         // Use placeholder for null returns so instance stays in tree (subscribes)
         const result = expanded ?? createTextVNode('');
+
+        if (result._instance) {
+          // Nested connected component: wrap outer in a boundary element
+          // so each instance has its own VNode (no _instance collision).
+          const boundary: VNode = {
+            type: 'div',
+            props: { style: { display: 'contents' } },
+            children: [result],
+            key: vnode.key,
+          };
+          boundary._instance = instance;
+          instance.lastVTree = boundary;
+          return boundary;
+        }
+
         result._instance = instance;
         instance.lastVTree = result;
 
@@ -106,6 +121,9 @@ function expand(vnode: VNode | null, parentDom: Node): VNode | null {
 }
 
 function reRenderInstance(instance: ComponentInstance, parentDom: Node): void {
+  // Guard: skip re-render if instance was unmounted (e.g. parent already rebuilt this subtree)
+  if (!instance._renderCallback) return;
+
   const connectedFn = instance.connectedFn;
   const lifecycle: Lifecycle | undefined = (connectedFn as any)._lifecycle;
 
@@ -114,38 +132,65 @@ function reRenderInstance(instance: ComponentInstance, parentDom: Node): void {
     const rawExpanded = expand(newVNode, parentDom);
 
     // Use placeholder for null returns so instance stays in tree
-    const newExpanded = rawExpanded ?? createTextVNode('');
+    let innerContent = rawExpanded ?? createTextVNode('');
+
+    // Wrap if nested connected component (same logic as expand)
+    let newTree: VNode;
+    if (innerContent._instance && innerContent._instance !== instance) {
+      newTree = {
+        type: 'div',
+        props: { style: { display: 'contents' } },
+        children: [innerContent],
+        key: null,
+      } as VNode;
+      newTree._instance = instance;
+    } else {
+      innerContent._instance = instance;
+      newTree = innerContent;
+    }
 
     if (instance.lastVTree) {
-      const patches = diff(instance.lastVTree, newExpanded);
+      // Refresh stale inner instance references before diffing
+      refreshInnerInstances(instance.lastVTree, instance);
+
+      const patches = diff(instance.lastVTree, newTree);
 
       // Find the actual parent DOM node to patch against
       const domParent = instance.lastVTree._dom?.parentNode || parentDom;
       applyPatches(domParent, patches);
 
-      // Unmount child instances in removed/replaced subtrees
-      // (skip our own instance — it drives this re-render and must stay alive)
-      for (const patch of patches) {
-        if (patch.type === PATCH.REMOVE) {
-          unmountSubtree(patch.target, instance);
-        } else if (patch.type === PATCH.REPLACE) {
-          unmountSubtree(patch.oldVNode, instance);
-        }
-      }
-
       // Transfer the _dom reference from old to new
-      if (!newExpanded._dom) {
-        newExpanded._dom = instance.lastVTree._dom;
+      if (!newTree._dom) {
+        newTree._dom = instance.lastVTree._dom;
       }
     }
 
-    newExpanded._instance = instance;
-    instance.lastVTree = newExpanded;
+    // Collect inner instances for lifecycle management
+    const oldInner: ComponentInstance[] = [];
+    collectInnerInstances(instance.lastVTree, oldInner, instance);
+    const newInner: ComponentInstance[] = [];
+    collectInnerInstances(newTree, newInner, instance);
+
+    // Unmount removed inner instances
+    const newInstSet = new Set(newInner);
+    for (const inst of oldInner) {
+      if (!newInstSet.has(inst)) inst.unmount();
+    }
+
+    instance.lastVTree = newTree;
+
+    // Mount new inner instances
+    const oldInstSet = new Set(oldInner);
+    for (const inst of newInner) {
+      if (!oldInstSet.has(inst)) {
+        inst.mount(parentDom, () => reRenderInstance(inst, parentDom));
+      }
+    }
 
     // Lifecycle: onUpdate fires after every re-render (not on initial mount)
     if (lifecycle?.onUpdate) {
       lifecycle.onUpdate({
-        dom: newExpanded?._dom,
+        dom: newTree?._dom,
         props: instance.props,
       });
     }
@@ -158,29 +203,45 @@ function reRenderInstance(instance: ComponentInstance, parentDom: Node): void {
 
       // Replace current DOM with fallback
       if (instance.lastVTree && fallbackExpanded) {
+        refreshInnerInstances(instance.lastVTree, instance);
+
         const patches = diff(instance.lastVTree, fallbackExpanded);
         const domParent = instance.lastVTree._dom?.parentNode || parentDom;
         applyPatches(domParent, patches);
-
-        // Unmount child instances but skip our own — it stays subscribed for recovery
-        for (const patch of patches) {
-          if (patch.type === PATCH.REMOVE) {
-            unmountSubtree(patch.target, instance);
-          } else if (patch.type === PATCH.REPLACE) {
-            unmountSubtree(patch.oldVNode, instance);
-          }
-        }
 
         if (!fallbackExpanded._dom) {
           fallbackExpanded._dom = instance.lastVTree._dom;
         }
       }
 
+      // Unmount old inner instances on error fallback
+      const oldInner: ComponentInstance[] = [];
+      collectInnerInstances(instance.lastVTree, oldInner, instance);
+      for (const inst of oldInner) inst.unmount();
+
       instance.lastVTree = fallbackExpanded;
       instance.updateSelected();
     } else {
       throw error;
     }
+  }
+}
+
+/**
+ * Before diffing a parent's lastVTree, refresh any inner connected components'
+ * subtrees to reflect their current state (they may have re-rendered independently).
+ */
+function refreshInnerInstances(vnode: VNode | null, skip: ComponentInstance): void {
+  if (!vnode || !vnode.children) return;
+  for (let i = 0; i < vnode.children.length; i++) {
+    const child = vnode.children[i];
+    if (child._instance && child._instance !== skip && child._instance.lastVTree) {
+      // Replace stale reference with instance's current lastVTree
+      if (child._instance.lastVTree !== child) {
+        vnode.children[i] = child._instance.lastVTree;
+      }
+    }
+    refreshInnerInstances(vnode.children[i], skip);
   }
 }
 
@@ -200,6 +261,20 @@ function collectInstances(vnode: VNode | null, result: ComponentInstance[]): voi
   if (vnode.children) {
     for (const child of vnode.children) {
       collectInstances(child, result);
+    }
+  }
+}
+
+function collectInnerInstances(
+  vnode: VNode | null,
+  result: ComponentInstance[],
+  skip: ComponentInstance,
+): void {
+  if (!vnode) return;
+  if (vnode._instance && vnode._instance !== skip) result.push(vnode._instance);
+  if (vnode.children) {
+    for (const child of vnode.children) {
+      collectInnerInstances(child, result, skip);
     }
   }
 }
