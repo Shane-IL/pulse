@@ -1,3 +1,32 @@
+# Dependencies
 node_modules/
+
+# Build output
 dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+
+# Claude
 .claude/
+
+# Workspace artifacts
+git-context-workspace/
+
+# Example lockfiles
+examples/*/package-lock.json

@@ -1,25 +1,30 @@
 import { describe, it, expect, vi } from 'vitest';
-import { connect, CONNECTED, ComponentInstance, shallowEqual } from '../src/connect';
+import {
+  connect,
+  CONNECTED,
+  ComponentInstance,
+  shallowEqual,
+} from '../src/connect';
 import { createStore } from '../src/store';
 import { flushSync } from '../src/scheduler';
 
 describe('connect', () => {
   it('returns a function', () => {
     const store = createStore({ state: { x: 1 }, actions: {} });
-    const wrapped = connect({ x: store.select(s => s.x) })(function C() {});
+    const wrapped = connect({ x: store.select((s) => s.x) })(function C() {});
     expect(typeof wrapped).toBe('function');
   });
 
   it('tags with CONNECTED symbol', () => {
     const store = createStore({ state: { x: 1 }, actions: {} });
-    const wrapped = connect({ x: store.select(s => s.x) })(function C() {});
+    const wrapped = connect({ x: store.select((s) => s.x) })(function C() {});
     expect(wrapped[CONNECTED]).toBe(true);
   });
 
   it('merges selected props into component call', () => {
     const store = createStore({ state: { count: 42 }, actions: {} });
     const inner = vi.fn(() => null);
-    const Connected = connect({ count: store.select(s => s.count) })(inner);
+    const Connected = connect({ count: store.select((s) => s.count) })(inner);
     Connected({ extra: 'prop' });
     expect(inner).toHaveBeenCalledWith({ count: 42, extra: 'prop' });
   });
@@ -27,13 +32,13 @@ describe('connect', () => {
   it('explicit props override selected props', () => {
     const store = createStore({ state: { count: 42 }, actions: {} });
     const inner = vi.fn(() => null);
-    const Connected = connect({ count: store.select(s => s.count) })(inner);
+    const Connected = connect({ count: store.select((s) => s.count) })(inner);
     Connected({ count: 99 });
     expect(inner).toHaveBeenCalledWith({ count: 99 });
   });
 
   it('sets displayName', () => {
-    const store = createStore({ state: {}, actions: {} });
+    createStore({ state: {}, actions: {} });
     function MyComponent() {}
     const Connected = connect({})(MyComponent);
     expect(Connected.displayName).toBe('Connected(MyComponent)');
@@ -42,9 +47,14 @@ describe('connect', () => {
 
 describe('ComponentInstance', () => {
   it('mount subscribes to stores', () => {
-    const store = createStore({ state: { x: 1 }, actions: { inc: s => ({ x: s.x + 1 }) } });
-    function Inner() { return null; }
-    const Connected = connect({ x: store.select(s => s.x) })(Inner);
+    const store = createStore({
+      state: { x: 1 },
+      actions: { inc: (s) => ({ x: s.x + 1 }) },
+    });
+    function Inner() {
+      return null;
+    }
+    const Connected = connect({ x: store.select((s) => s.x) })(Inner);
     const instance = new ComponentInstance(Connected, {});
 
     const renderCb = vi.fn();
@@ -57,9 +67,14 @@ describe('ComponentInstance', () => {
   });
 
   it('unmount unsubscribes from stores', () => {
-    const store = createStore({ state: { x: 1 }, actions: { inc: s => ({ x: s.x + 1 }) } });
-    function Inner() { return null; }
-    const Connected = connect({ x: store.select(s => s.x) })(Inner);
+    const store = createStore({
+      state: { x: 1 },
+      actions: { inc: (s) => ({ x: s.x + 1 }) },
+    });
+    function Inner() {
+      return null;
+    }
+    const Connected = connect({ x: store.select((s) => s.x) })(Inner);
     const instance = new ComponentInstance(Connected, {});
 
     const renderCb = vi.fn();
@@ -74,11 +89,13 @@ describe('ComponentInstance', () => {
   it('skips render when shallowEqual', () => {
     const store = createStore({
       state: { x: 1 },
-      actions: { noop: s => ({ ...s }) }, // new object, same values
+      actions: { noop: (s) => ({ ...s }) }, // new object, same values
     });
-    function Inner() { return null; }
+    function Inner() {
+      return null;
+    }
     // Selector returns a primitive, so shallow equal on primitives
-    const Connected = connect({ x: store.select(s => s.x) })(Inner);
+    const Connected = connect({ x: store.select((s) => s.x) })(Inner);
     const instance = new ComponentInstance(Connected, {});
 
     const renderCb = vi.fn();
@@ -92,7 +109,12 @@ describe('ComponentInstance', () => {
 describe('lifecycle callbacks', () => {
   it('onMount is called when mount() is invoked', () => {
     const onMount = vi.fn();
-    const Connected = connect({}, { onMount })(function V() { return null; });
+    const Connected = connect(
+      {},
+      { onMount },
+    )(function V() {
+      return null;
+    });
     const instance = new ComponentInstance(Connected, {});
     instance.lastVTree = { _dom: document.createElement('div') };
 
@@ -104,7 +126,12 @@ describe('lifecycle callbacks', () => {
   it('onMount receives { dom, props }', () => {
     const onMount = vi.fn();
     const dom = document.createElement('span');
-    const Connected = connect({}, { onMount })(function V() { return null; });
+    const Connected = connect(
+      {},
+      { onMount },
+    )(function V() {
+      return null;
+    });
     const instance = new ComponentInstance(Connected, { id: 42 });
     instance.lastVTree = { _dom: dom };
 
@@ -116,7 +143,12 @@ describe('lifecycle callbacks', () => {
   it('onMount cleanup function is called on unmount', () => {
     const cleanup = vi.fn();
     const onMount = vi.fn(() => cleanup);
-    const Connected = connect({}, { onMount })(function V() { return null; });
+    const Connected = connect(
+      {},
+      { onMount },
+    )(function V() {
+      return null;
+    });
     const instance = new ComponentInstance(Connected, {});
     instance.lastVTree = { _dom: document.createElement('div') };
 
@@ -129,7 +161,12 @@ describe('lifecycle callbacks', () => {
 
   it('onDestroy is called on unmount', () => {
     const onDestroy = vi.fn();
-    const Connected = connect({}, { onDestroy })(function V() { return null; });
+    const Connected = connect(
+      {},
+      { onDestroy },
+    )(function V() {
+      return null;
+    });
     const instance = new ComponentInstance(Connected, { x: 1 });
     instance.lastVTree = { _dom: document.createElement('div') };
 
@@ -144,7 +181,12 @@ describe('lifecycle callbacks', () => {
     const cleanup = vi.fn(() => order.push('cleanup'));
     const onMount = vi.fn(() => cleanup);
     const onDestroy = vi.fn(() => order.push('destroy'));
-    const Connected = connect({}, { onMount, onDestroy })(function V() { return null; });
+    const Connected = connect(
+      {},
+      { onMount, onDestroy },
+    )(function V() {
+      return null;
+    });
     const instance = new ComponentInstance(Connected, {});
     instance.lastVTree = { _dom: document.createElement('div') };
 
@@ -156,7 +198,9 @@ describe('lifecycle callbacks', () => {
 
   it('works without lifecycle (backward compatible)', () => {
     const store = createStore({ state: { x: 1 }, actions: {} });
-    const Connected = connect({ x: store.select(s => s.x) })(function V() { return null; });
+    const Connected = connect({ x: store.select((s) => s.x) })(function V() {
+      return null;
+    });
     const instance = new ComponentInstance(Connected, {});
 
     // Should not throw
@@ -166,7 +210,12 @@ describe('lifecycle callbacks', () => {
 
   it('onMount non-function return is ignored', () => {
     const onMount = vi.fn(() => 'not a function');
-    const Connected = connect({}, { onMount })(function V() { return null; });
+    const Connected = connect(
+      {},
+      { onMount },
+    )(function V() {
+      return null;
+    });
     const instance = new ComponentInstance(Connected, {});
     instance.lastVTree = { _dom: document.createElement('div') };
 

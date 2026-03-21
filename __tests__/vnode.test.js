@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { TEXT_NODE, FRAGMENT, createTextVNode, normalizeChild, flattenChildren } from '../src/vnode';
+import {
+  TEXT_NODE,
+  createTextVNode,
+  normalizeChild,
+  flattenChildren,
+} from '../src/vnode';
 
 describe('createTextVNode', () => {
   it('creates a text vnode from a string', () => {

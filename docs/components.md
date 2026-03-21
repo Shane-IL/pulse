@@ -33,7 +33,7 @@ function Card({ title, children }) {
 // Usage
 <Card title="Welcome">
   <p>Content goes here</p>
-</Card>
+</Card>;
 ```
 
 ### Fragments
@@ -95,7 +95,7 @@ const Connected = connect({
 })(Counter);
 
 // `count` will be 99, not 42
-<Connected count={99} />
+<Connected count={99} />;
 ```
 
 ### Multiple Store Bindings
@@ -146,14 +146,15 @@ const ConnectedTodoList = connect({
 When rendering lists, always provide a `key` prop to help the diffing algorithm match elements efficiently:
 
 ```jsx
-{items.map((item) => (
-  <TodoItem key={item.id} item={item} />
-))}
+{
+  items.map((item) => <TodoItem key={item.id} item={item} />);
+}
 ```
 
 Keys should be stable, unique identifiers — not array indices. Without keys, Pulse falls back to positional matching which can cause incorrect updates when items are reordered, inserted, or removed.
 
 > **Development warnings:** In development mode, Pulse warns about common key mistakes:
+>
 > - **Duplicate keys** — two siblings with the same key
 > - **Mixed keyed and unkeyed** — some siblings have keys and others don't
 >
@@ -166,10 +167,12 @@ Event handlers are passed as `onXxx` props (camelCase):
 ```jsx
 function Form() {
   return (
-    <form onSubmit={(e) => {
-      e.preventDefault();
-      todoStore.dispatch('add', e.target.elements.text.value);
-    }}>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        todoStore.dispatch('add', e.target.elements.text.value);
+      }}
+    >
       <input name="text" />
       <button type="submit">Add</button>
     </form>
@@ -212,13 +215,13 @@ When a connected component is conditionally removed, its subscriptions are clean
 
 ## Connected vs. Plain — When to Use Which
 
-| | Plain Component | Connected Component |
-|---|---|---|
-| **State** | None — just renders props | Subscribes to stores |
-| **Re-renders** | When parent re-renders | When selected store values change |
-| **Lifecycle** | None | `onMount` / `onUpdate` / `onDestroy` / `onError` |
-| **Error handling** | Errors bubble to parent | Can catch errors via `onError` (error boundary) |
-| **Use for** | Presentational UI, layouts | Data-fetching components, interactive widgets |
+|                    | Plain Component            | Connected Component                              |
+| ------------------ | -------------------------- | ------------------------------------------------ |
+| **State**          | None — just renders props  | Subscribes to stores                             |
+| **Re-renders**     | When parent re-renders     | When selected store values change                |
+| **Lifecycle**      | None                       | `onMount` / `onUpdate` / `onDestroy` / `onError` |
+| **Error handling** | Errors bubble to parent    | Can catch errors via `onError` (error boundary)  |
+| **Use for**        | Presentational UI, layouts | Data-fetching components, interactive widgets    |
 
 **Rule of thumb:** Keep most components plain. Use `connect()` at the boundaries where data enters the component tree.
 
@@ -245,7 +248,7 @@ const ConnectedApp = connect(
   { data: dataStore.select((s) => s.data) },
   {
     onError: ({ error }) => <p>Something went wrong: {error.message}</p>,
-  }
+  },
 )(App);
 ```
 

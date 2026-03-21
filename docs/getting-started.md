@@ -29,10 +29,13 @@ Pulse uses a custom JSX pragma. Configure your toolchain to use `h` as the facto
 // .babelrc or babel.config.json
 {
   "plugins": [
-    ["@babel/plugin-transform-react-jsx", {
-      "pragma": "h",
-      "pragmaFrag": "Fragment"
-    }]
+    [
+      "@babel/plugin-transform-react-jsx",
+      {
+        "pragma": "h",
+        "pragmaFrag": "Fragment"
+      }
+    ]
   ]
 }
 ```

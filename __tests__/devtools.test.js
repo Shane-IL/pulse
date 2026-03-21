@@ -3,7 +3,11 @@ import { createStore } from '../src/store';
 import { actionHistory } from '../src/middleware';
 import { PulseDevtools, instrumentStore } from '../src/devtools/core';
 import { travelTo, replayFrom } from '../src/devtools/time-travel';
-import { __setComponentHooks, ComponentInstance, connect } from '../src/connect';
+import {
+  __setComponentHooks,
+  ComponentInstance,
+  connect,
+} from '../src/connect';
 
 function makeTrackedCounter(dt, name = 'counter') {
   const history = [];
@@ -29,7 +33,7 @@ describe('PulseDevtools', () => {
   });
 
   it('registerStore tracks the store', () => {
-    const { store } = makeTrackedCounter(dt);
+    makeTrackedCounter(dt);
     expect(dt.getStoreNames()).toEqual(['counter']);
     expect(dt.getStoreState('counter')).toEqual({ count: 0 });
   });
@@ -39,7 +43,10 @@ describe('PulseDevtools', () => {
     dt.on(listener);
     makeTrackedCounter(dt);
     expect(listener).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'store-registered', storeName: 'counter' }),
+      expect.objectContaining({
+        type: 'store-registered',
+        storeName: 'counter',
+      }),
     );
   });
 
@@ -49,7 +56,10 @@ describe('PulseDevtools', () => {
     dt.on(listener);
     store.dispatch('increment');
     expect(listener).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'action-dispatched', storeName: 'counter' }),
+      expect.objectContaining({
+        type: 'action-dispatched',
+        storeName: 'counter',
+      }),
     );
   });
 
@@ -163,7 +173,9 @@ describe('time-travel', () => {
   });
 
   it('travelTo throws on unknown store', () => {
-    expect(() => travelTo(dt, 'nope', 0)).toThrow('[pulse-devtools] Unknown store: "nope"');
+    expect(() => travelTo(dt, 'nope', 0)).toThrow(
+      '[pulse-devtools] Unknown store: "nope"',
+    );
   });
 
   it('travelTo throws on out-of-range index', () => {
@@ -187,14 +199,16 @@ describe('time-travel', () => {
   it('replayFrom from index 0 replays all', () => {
     const { store } = makeTrackedCounter(dt);
     store.dispatch('increment'); // 0 → 1
-    store.dispatch('set', 10);  // 1 → 10
+    store.dispatch('set', 10); // 1 → 10
 
     replayFrom(dt, 'counter', 0);
     expect(store.getState().count).toBe(10);
   });
 
   it('replayFrom throws on unknown store', () => {
-    expect(() => replayFrom(dt, 'nope', 0)).toThrow('[pulse-devtools] Unknown store: "nope"');
+    expect(() => replayFrom(dt, 'nope', 0)).toThrow(
+      '[pulse-devtools] Unknown store: "nope"',
+    );
   });
 });
 
@@ -244,7 +258,7 @@ describe('component tracking hooks', () => {
 
     const Connected = connect({
       x: store.select((s) => s.x),
-    })((props) => null);
+    })(() => null);
 
     const instance = new ComponentInstance(Connected, {});
     instance.mount(document.createElement('div'), () => {});
@@ -263,7 +277,7 @@ describe('component tracking hooks', () => {
 
     const Connected = connect({
       x: store.select((s) => s.x),
-    })((props) => null);
+    })(() => null);
 
     const instance = new ComponentInstance(Connected, {});
     instance.mount(document.createElement('div'), () => {});
@@ -284,7 +298,7 @@ describe('component tracking hooks', () => {
 
     const Connected = connect({
       x: store.select((s) => s.x),
-    })((props) => null);
+    })(() => null);
 
     const instance = new ComponentInstance(Connected, {});
     // Should not throw

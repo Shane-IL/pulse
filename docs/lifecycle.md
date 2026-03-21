@@ -20,6 +20,7 @@ connect(bindings, {
 Called **once** after the component's first render, when the DOM element exists and store subscriptions are active.
 
 **Arguments:**
+
 - `dom` — the rendered DOM element (the actual node in the document)
 - `props` — the component's props at mount time
 
@@ -36,7 +37,7 @@ const Chart = connect(
       // Return cleanup function
       return () => chart.destroy();
     },
-  }
+  },
 )(ChartView);
 ```
 
@@ -45,17 +46,21 @@ const Chart = connect(
 Called when the component is removed from the DOM, **after** the cleanup function (if any).
 
 **Arguments:**
+
 - `props` — the component's props at destroy time
 
 ```jsx
-const Logger = connect({}, {
-  onMount: ({ props }) => {
-    analytics.track('component_mounted', { id: props.id });
+const Logger = connect(
+  {},
+  {
+    onMount: ({ props }) => {
+      analytics.track('component_mounted', { id: props.id });
+    },
+    onDestroy: ({ props }) => {
+      analytics.track('component_destroyed', { id: props.id });
+    },
   },
-  onDestroy: ({ props }) => {
-    analytics.track('component_destroyed', { id: props.id });
-  },
-})(LoggerView);
+)(LoggerView);
 ```
 
 ### `onUpdate({ dom, props })`
@@ -63,6 +68,7 @@ const Logger = connect({}, {
 Called after every **store-driven re-render**. Does **not** fire on the initial mount — only on subsequent updates triggered by store changes.
 
 **Arguments:**
+
 - `dom` — the rendered DOM element (post-patch)
 - `props` — the component's props at update time
 
@@ -78,7 +84,7 @@ const AnimatedList = connect(
       dom.style.transition = 'height 200ms ease';
       dom.style.height = `${height}px`;
     },
-  }
+  },
 )(ListView);
 ```
 
@@ -89,6 +95,7 @@ const AnimatedList = connect(
 Called when the component throws an error during rendering. Acts as an **error boundary** — catches the error and renders a fallback UI instead of crashing the app.
 
 **Arguments:**
+
 - `error` — the thrown value (typed as `unknown` since JS can throw anything)
 - `props` — the component's props at the time of the error
 
@@ -107,11 +114,12 @@ const SafeChart = connect(
         </div>
       );
     },
-  }
+  },
 )(ChartView);
 ```
 
 **Key behaviors:**
+
 - The component **stays subscribed** to its stores after an error. On the next store change, it retries the real render — enabling automatic recovery from transient errors.
 - If `onError` is not provided, the error propagates (thrown to the caller).
 - If the **fallback itself** throws, the error propagates (no infinite loop).
@@ -124,7 +132,7 @@ const SafeWidget = connect(
   { data: widgetStore.select((s) => s.data) },
   {
     onError: ({ error }) => <p>Error: {error.message}</p>,
-  }
+  },
 )(Widget);
 
 // If Widget throws because data is temporarily malformed,
@@ -137,19 +145,22 @@ const SafeWidget = connect(
 The most common pattern: `onMount` sets something up and returns a teardown function. This keeps setup and teardown co-located:
 
 ```jsx
-const WindowSize = connect({}, {
-  onMount: ({ dom }) => {
-    const handler = () => {
-      sizeStore.dispatch('set', {
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
-    };
+const WindowSize = connect(
+  {},
+  {
+    onMount: ({ dom }) => {
+      const handler = () => {
+        sizeStore.dispatch('set', {
+          width: window.innerWidth,
+          height: window.innerHeight,
+        });
+      };
 
-    window.addEventListener('resize', handler);
-    return () => window.removeEventListener('resize', handler);
+      window.addEventListener('resize', handler);
+      return () => window.removeEventListener('resize', handler);
+    },
   },
-})(SizeDisplay);
+)(SizeDisplay);
 ```
 
 ### Execution Order on Unmount
@@ -167,13 +178,16 @@ This ordering ensures lifecycle callbacks can still read store state if needed.
 Not every component with lifecycle needs store bindings. Pass empty bindings to get lifecycle without store subscriptions:
 
 ```jsx
-const FocusInput = connect({}, {
-  onMount: ({ dom }) => {
-    // Focus the input element on mount
-    const input = dom.querySelector('input');
-    if (input) input.focus();
+const FocusInput = connect(
+  {},
+  {
+    onMount: ({ dom }) => {
+      // Focus the input element on mount
+      const input = dom.querySelector('input');
+      if (input) input.focus();
+    },
   },
-})(InputForm);
+)(InputForm);
 ```
 
 ## Common Patterns
@@ -200,7 +214,7 @@ const ConnectedProfile = connect(
         .then((r) => r.json())
         .then((user) => userStore.dispatch('setUser', user));
     },
-  }
+  },
 )(UserProfile);
 ```
 
@@ -216,7 +230,7 @@ const Clock = connect(
       }, 1000);
       return () => clearInterval(id);
     },
-  }
+  },
 )(ClockView);
 ```
 
@@ -228,43 +242,48 @@ const Map = connect(
   {
     onMount: ({ dom, props }) => {
       const map = L.map(dom).setView([51.505, -0.09], 13);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(
+        map,
+      );
 
       props.markers.forEach((m) => L.marker(m.coords).addTo(map));
 
       return () => map.remove();
     },
-  }
+  },
 )(MapView);
 ```
 
 ### Event Listeners
 
 ```jsx
-const KeyboardShortcuts = connect({}, {
-  onMount: () => {
-    const handler = (e) => {
-      if (e.key === 'Escape') modalStore.dispatch('close');
-      if (e.ctrlKey && e.key === 's') {
-        e.preventDefault();
-        saveStore.dispatch('save');
-      }
-    };
+const KeyboardShortcuts = connect(
+  {},
+  {
+    onMount: () => {
+      const handler = (e) => {
+        if (e.key === 'Escape') modalStore.dispatch('close');
+        if (e.ctrlKey && e.key === 's') {
+          e.preventDefault();
+          saveStore.dispatch('save');
+        }
+      };
 
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
+      document.addEventListener('keydown', handler);
+      return () => document.removeEventListener('keydown', handler);
+    },
   },
-})(ShortcutProvider);
+)(ShortcutProvider);
 ```
 
 ## Lifecycle Execution Order
 
-| Event | Callbacks fired |
-|-------|----------------|
-| First render | `onMount` |
-| Store-driven re-render (success) | `onUpdate` |
-| Store-driven re-render (error caught) | `onError` (onUpdate does **not** fire) |
-| Component removed | cleanup function (from onMount) → `onDestroy` → unsubscribe |
+| Event                                 | Callbacks fired                                             |
+| ------------------------------------- | ----------------------------------------------------------- |
+| First render                          | `onMount`                                                   |
+| Store-driven re-render (success)      | `onUpdate`                                                  |
+| Store-driven re-render (error caught) | `onError` (onUpdate does **not** fire)                      |
+| Component removed                     | cleanup function (from onMount) → `onDestroy` → unsubscribe |
 
 ## Important Notes
 

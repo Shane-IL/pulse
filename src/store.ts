@@ -93,11 +93,14 @@ export function createStore<S>(config: StoreConfig<S>): Store<S> {
     next();
   }
 
-  const dispatch = mw && mw.length > 0 ? dispatchWithMiddleware : dispatchSimple;
+  const dispatch =
+    mw && mw.length > 0 ? dispatchWithMiddleware : dispatchSimple;
 
   function subscribe(listener: (state: S) => void): () => void {
     listeners.add(listener);
-    return () => { listeners.delete(listener); };
+    return () => {
+      listeners.delete(listener);
+    };
   }
 
   function select<R>(selectorFn: (state: S) => R): SelectorBinding<S, R> {

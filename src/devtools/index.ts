@@ -1,6 +1,5 @@
 import { __setComponentHooks, ComponentInstance } from '../connect';
-import { PulseDevtools, instrumentStore } from './core';
-import { travelTo, replayFrom } from './time-travel';
+import { PulseDevtools } from './core';
 import { createPanel } from './panel/panel';
 
 // Singleton devtools instance
@@ -20,13 +19,15 @@ __setComponentHooks(
     const boundStores = Object.values(bindings).map((b: any) => b.store);
 
     // Skip components only bound to internal (panel) stores
-    if (boundStores.length > 0 && boundStores.every((s) => internalStores.has(s))) {
+    if (
+      boundStores.length > 0 &&
+      boundStores.every((s) => internalStores.has(s))
+    ) {
       return;
     }
 
     const storeNames = boundStores.map((s) => s.name || 'unnamed');
-    const displayName =
-      (instance.connectedFn as any).displayName || 'Unknown';
+    const displayName = (instance.connectedFn as any).displayName || 'Unknown';
     const id = devtools.trackComponent(displayName, storeNames);
     (instance as any)._devtoolsId = id;
   },

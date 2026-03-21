@@ -22,7 +22,9 @@ describe('createDOMNode', () => {
   });
 
   it('creates nested tree', () => {
-    const vnode = h('div', null,
+    const vnode = h(
+      'div',
+      null,
       h('span', null, 'child1'),
       h('p', null, 'child2'),
     );

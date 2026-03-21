@@ -4,7 +4,11 @@ import type { SelectorBinding } from './store';
 export const TEXT_NODE: unique symbol = Symbol('TEXT_NODE');
 export const FRAGMENT: unique symbol = Symbol('FRAGMENT');
 
-export type VNodeType = string | typeof TEXT_NODE | typeof FRAGMENT | ComponentFunction;
+export type VNodeType =
+  | string
+  | typeof TEXT_NODE
+  | typeof FRAGMENT
+  | ComponentFunction;
 
 export interface VNode {
   type: VNodeType;
@@ -22,9 +26,18 @@ export interface Bindings {
 }
 
 export interface Lifecycle {
-  onMount?: (ctx: { dom: Node | null | undefined; props: Record<string, any> }) => void | (() => void);
-  onUpdate?: (ctx: { dom: Node | null | undefined; props: Record<string, any> }) => void;
-  onError?: (ctx: { error: unknown; props: Record<string, any> }) => VNode | null;
+  onMount?: (ctx: {
+    dom: Node | null | undefined;
+    props: Record<string, any>;
+  }) => void | (() => void);
+  onUpdate?: (ctx: {
+    dom: Node | null | undefined;
+    props: Record<string, any>;
+  }) => void;
+  onError?: (ctx: {
+    error: unknown;
+    props: Record<string, any>;
+  }) => VNode | null;
   onDestroy?: (ctx: { props: Record<string, any> }) => void;
 }
 

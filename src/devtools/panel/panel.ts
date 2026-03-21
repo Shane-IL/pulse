@@ -45,7 +45,10 @@ function createPanelStore() {
       setTab: (state, tab) => ({ ...state, activeTab: tab }),
       selectStore: (state, name) => ({ ...state, selectedStore: name }),
       setFilter: (state, filter) => ({ ...state, filter }),
-      setTimeTravelIndex: (state, index) => ({ ...state, timeTravelIndex: index }),
+      setTimeTravelIndex: (state, index) => ({
+        ...state,
+        timeTravelIndex: index,
+      }),
       sync: (state, data) => ({ ...state, ...data }),
     },
   });
@@ -94,23 +97,39 @@ function PanelRootView({
     tabContent = ComponentsTab({ components });
   }
 
-  return h('div', { style: s.panelRoot },
+  return h(
+    'div',
+    { style: s.panelRoot },
     // Tab bar (all children keyed to avoid mixed key warnings)
-    h('div', { style: s.tabBar },
+    h(
+      'div',
+      { style: s.tabBar },
       h('span', { key: 'title', style: s.title }, 'Pulse'),
       ...tabs.map((tab) =>
-        h('button', {
-          key: tab.id,
-          style: s.tabButton(tab.id === activeTab),
-          onClick: () => panelActions.setTab(tab.id),
-        }, tab.label),
+        h(
+          'button',
+          {
+            key: tab.id,
+            style: s.tabButton(tab.id === activeTab),
+            onClick: () => panelActions.setTab(tab.id),
+          },
+          tab.label,
+        ),
       ),
-      h('span', { key: 'badge', style: s.badge }, `${storeNames.length} stores`),
-      h('button', {
-        key: 'close',
-        style: s.closeButton,
-        onClick: panelActions.close,
-      }, '\u00d7'),
+      h(
+        'span',
+        { key: 'badge', style: s.badge },
+        `${storeNames.length} stores`,
+      ),
+      h(
+        'button',
+        {
+          key: 'close',
+          style: s.closeButton,
+          onClick: panelActions.close,
+        },
+        '\u00d7',
+      ),
     ),
     // Content
     h('div', { style: s.tabContent }, tabContent),
@@ -157,7 +176,11 @@ export function createPanel(
 
   // Listen to devtools events (skip component events to avoid feedback loop)
   devtools.on((event) => {
-    if (event.type === 'component-mounted' || event.type === 'component-unmounted') return;
+    if (
+      event.type === 'component-mounted' ||
+      event.type === 'component-unmounted'
+    )
+      return;
     syncState();
   });
 

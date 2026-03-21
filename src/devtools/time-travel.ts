@@ -61,5 +61,9 @@ export function replayFrom(
     store.dispatch(entry.actionName, entry.payload);
   }
 
-  devtools.emit({ type: 'time-travel', storeName, data: { replayFrom: fromIndex } });
+  devtools.emit({
+    type: 'time-travel',
+    storeName,
+    data: { replayFrom: fromIndex },
+  });
 }

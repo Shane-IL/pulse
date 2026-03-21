@@ -38,7 +38,11 @@ export class PulseDevtools {
   private components = new Map<number, TrackedComponent>();
   private listeners = new Set<DevtoolsListener>();
 
-  registerStore(store: Store<any>, history: ActionEntry[], name?: string): void {
+  registerStore(
+    store: Store<any>,
+    history: ActionEntry[],
+    name?: string,
+  ): void {
     const storeName = name || store.name || `store_${this.stores.size}`;
     this.stores.set(storeName, { store, history, name: storeName });
 
@@ -77,7 +81,10 @@ export class PulseDevtools {
   trackComponent(displayName: string, storeNames: string[]): number {
     const id = nextComponentId++;
     this.components.set(id, { id, displayName, storeNames });
-    this.emit({ type: 'component-mounted', data: { id, displayName, storeNames } });
+    this.emit({
+      type: 'component-mounted',
+      data: { id, displayName, storeNames },
+    });
     return id;
   }
 
@@ -85,7 +92,10 @@ export class PulseDevtools {
     const comp = this.components.get(id);
     if (comp) {
       this.components.delete(id);
-      this.emit({ type: 'component-unmounted', data: { id, displayName: comp.displayName } });
+      this.emit({
+        type: 'component-unmounted',
+        data: { id, displayName: comp.displayName },
+      });
     }
   }
 
@@ -95,7 +105,9 @@ export class PulseDevtools {
 
   on(listener: DevtoolsListener): () => void {
     this.listeners.add(listener);
-    return () => { this.listeners.delete(listener); };
+    return () => {
+      this.listeners.delete(listener);
+    };
   }
 
   emit(event: DevtoolsEvent): void {

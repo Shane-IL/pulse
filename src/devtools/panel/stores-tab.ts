@@ -21,9 +21,13 @@ function renderValue(value: any, depth: number): VNode {
   if (Array.isArray(value)) {
     if (value.length === 0) return h('span', { style: s.treeValue }, '[]');
     if (depth > 4) return h('span', { style: s.treeNull }, '[…]');
-    return h('div', { style: { paddingLeft: '12px' } },
+    return h(
+      'div',
+      { style: { paddingLeft: '12px' } },
       ...value.map((item, i) =>
-        h('div', { key: i },
+        h(
+          'div',
+          { key: i },
           h('span', { style: s.treeKey }, `${i}: `),
           renderValue(item, depth + 1),
         ),
@@ -34,9 +38,13 @@ function renderValue(value: any, depth: number): VNode {
     const keys = Object.keys(value);
     if (keys.length === 0) return h('span', { style: s.treeValue }, '{}');
     if (depth > 4) return h('span', { style: s.treeNull }, '{…}');
-    return h('div', { style: { paddingLeft: '12px' } },
+    return h(
+      'div',
+      { style: { paddingLeft: '12px' } },
       ...keys.map((key) =>
-        h('div', { key },
+        h(
+          'div',
+          { key },
           h('span', { style: s.treeKey }, `${key}: `),
           renderValue(value[key], depth + 1),
         ),
@@ -59,21 +67,36 @@ export function StoresTab({
 }): VNode {
   const currentState = selectedStore ? storeStates[selectedStore] : null;
 
-  return h('div', { style: s.splitPane },
-    h('div', { style: s.paneLeft },
+  return h(
+    'div',
+    { style: s.splitPane },
+    h(
+      'div',
+      { style: s.paneLeft },
       ...storeNames.map((name) =>
-        h('div', {
-          key: name,
-          style: s.storeItem(name === selectedStore),
-          onClick: () => onSelectStore(name),
-        }, name),
+        h(
+          'div',
+          {
+            key: name,
+            style: s.storeItem(name === selectedStore),
+            onClick: () => onSelectStore(name),
+          },
+          name,
+        ),
       ),
     ),
-    h('div', { style: s.paneRight },
+    h(
+      'div',
+      { style: s.paneRight },
       selectedStore
-        ? h('div', null,
-            h('div', { style: { marginBottom: '8px', color: s.colors.subtext0 } },
-              `State of `, h('span', { style: s.actionName }, selectedStore),
+        ? h(
+            'div',
+            null,
+            h(
+              'div',
+              { style: { marginBottom: '8px', color: s.colors.subtext0 } },
+              `State of `,
+              h('span', { style: s.actionName }, selectedStore),
             ),
             currentState != null
               ? renderValue(currentState, 0)

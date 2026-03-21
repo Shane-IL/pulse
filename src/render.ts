@@ -1,9 +1,8 @@
-import { diff, PATCH } from './diff';
+import { diff } from './diff';
 import { createDOMNode, applyPatches } from './patch';
 import { CONNECTED, ComponentInstance } from './connect';
-import { TEXT_NODE, FRAGMENT, createTextVNode } from './vnode';
+import { createTextVNode } from './vnode';
 import type { VNode, Lifecycle } from './vnode';
-import type { Patch } from './diff';
 
 interface RootEntry {
   vTree: VNode;
@@ -98,7 +97,10 @@ function expand(vnode: VNode | null, parentDom: Node): VNode | null {
         return result;
       } catch (error) {
         if (lifecycle?.onError) {
-          const fallbackVNode = lifecycle.onError({ error, props: vnode.props });
+          const fallbackVNode = lifecycle.onError({
+            error,
+            props: vnode.props,
+          });
           return expand(fallbackVNode, parentDom);
         }
         throw error;
@@ -113,7 +115,7 @@ function expand(vnode: VNode | null, parentDom: Node): VNode | null {
   // Element, text, or fragment: recursively expand children
   if (vnode.children?.length) {
     vnode.children = vnode.children
-      .map(child => expand(child, parentDom))
+      .map((child) => expand(child, parentDom))
       .filter((c): c is VNode => c != null);
   }
 
@@ -132,7 +134,7 @@ function reRenderInstance(instance: ComponentInstance, parentDom: Node): void {
     const rawExpanded = expand(newVNode, parentDom);
 
     // Use placeholder for null returns so instance stays in tree
-    let innerContent = rawExpanded ?? createTextVNode('');
+    const innerContent = rawExpanded ?? createTextVNode('');
 
     // Wrap if nested connected component (same logic as expand)
     let newTree: VNode;
@@ -231,11 +233,18 @@ function reRenderInstance(instance: ComponentInstance, parentDom: Node): void {
  * Before diffing a parent's lastVTree, refresh any inner connected components'
  * subtrees to reflect their current state (they may have re-rendered independently).
  */
-function refreshInnerInstances(vnode: VNode | null, skip: ComponentInstance): void {
+function refreshInnerInstances(
+  vnode: VNode | null,
+  skip: ComponentInstance,
+): void {
   if (!vnode || !vnode.children) return;
   for (let i = 0; i < vnode.children.length; i++) {
     const child = vnode.children[i];
-    if (child._instance && child._instance !== skip && child._instance.lastVTree) {
+    if (
+      child._instance &&
+      child._instance !== skip &&
+      child._instance.lastVTree
+    ) {
       // Replace stale reference with instance's current lastVTree
       if (child._instance.lastVTree !== child) {
         vnode.children[i] = child._instance.lastVTree;
@@ -245,17 +254,10 @@ function refreshInnerInstances(vnode: VNode | null, skip: ComponentInstance): vo
   }
 }
 
-function unmountSubtree(vnode: VNode | null, skip?: ComponentInstance): void {
-  if (!vnode) return;
-  if (vnode._instance && vnode._instance !== skip) vnode._instance.unmount();
-  if (vnode.children) {
-    for (const child of vnode.children) {
-      unmountSubtree(child, skip);
-    }
-  }
-}
-
-function collectInstances(vnode: VNode | null, result: ComponentInstance[]): void {
+function collectInstances(
+  vnode: VNode | null,
+  result: ComponentInstance[],
+): void {
   if (!vnode) return;
   if (vnode._instance) result.push(vnode._instance);
   if (vnode.children) {

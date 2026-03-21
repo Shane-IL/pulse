@@ -82,9 +82,9 @@ const store = createStore({
   },
 });
 
-store.getState();              // { count: 0 }
-store.dispatch('increment');   // state is now { count: 1 }
-store.dispatch('set', 42);     // state is now { count: 42 }
+store.getState(); // { count: 0 }
+store.dispatch('increment'); // state is now { count: 1 }
+store.dispatch('set', 42); // state is now { count: 42 }
 
 const unsub = store.subscribe((newState) => {
   console.log('State changed:', newState);
@@ -142,7 +142,7 @@ const Timer = connect(
       // Called when the component throws during render. Return fallback VNode.
       return h('div', { className: 'error' }, `Error: ${error.message}`);
     },
-  }
+  },
 )(TimerView);
 ```
 
@@ -184,11 +184,7 @@ Creates a store-based client-side router.
 import { h, createRouter, render } from '@shane_il/pulse';
 
 const router = createRouter({
-  routes: [
-    { path: '/' },
-    { path: '/users/:id' },
-    { path: '*' },
-  ],
+  routes: [{ path: '/' }, { path: '/users/:id' }, { path: '*' }],
 });
 
 const { Route, Link } = router;
@@ -285,16 +281,16 @@ const store = createStore({
   state: { items: [], loading: false, error: null },
   actions: {
     fetchStart: (s) => ({ ...s, loading: true, error: null }),
-    fetchOk:    (s, items) => ({ ...s, loading: false, items }),
-    fetchFail:  (s, error) => ({ ...s, loading: false, error }),
+    fetchOk: (s, items) => ({ ...s, loading: false, items }),
+    fetchFail: (s, error) => ({ ...s, loading: false, error }),
   },
 });
 
 const loadItems = createAsyncAction(store, {
-  start: 'fetchStart',      // optional — dispatched immediately
-  run: (query) => api.getItems(query),  // your async work
-  ok: 'fetchOk',            // dispatched with the resolved value
-  fail: 'fetchFail',        // optional — dispatched with error message
+  start: 'fetchStart', // optional — dispatched immediately
+  run: (query) => api.getItems(query), // your async work
+  ok: 'fetchOk', // dispatched with the resolved value
+  fail: 'fetchFail', // optional — dispatched with error message
 });
 
 await loadItems({ limit: 10 });

@@ -8,6 +8,16 @@ export { logger, actionHistory, createAsyncAction } from './middleware';
 
 // Re-export types for consumers
 export type { VNode, ComponentFunction, Bindings, Lifecycle } from './vnode';
-export type { Store, StoreConfig, StoreActions, SelectorBinding } from './store';
+export type {
+  Store,
+  StoreConfig,
+  StoreActions,
+  SelectorBinding,
+} from './store';
 export type { RouteState, RouteConfig, RouterOptions, Router } from './router';
-export type { Middleware, DispatchContext, ActionEntry, AsyncActionConfig } from './middleware';
+export type {
+  Middleware,
+  DispatchContext,
+  ActionEntry,
+  AsyncActionConfig,
+} from './middleware';

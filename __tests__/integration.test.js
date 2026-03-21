@@ -11,13 +11,11 @@ describe('integration: store -> connect -> render', () => {
     });
 
     function Counter({ count }) {
-      return h('div', null,
-        h('span', { className: 'count' }, String(count)),
-      );
+      return h('div', null, h('span', { className: 'count' }, String(count)));
     }
 
     const ConnectedCounter = connect({
-      count: store.select(s => s.count),
+      count: store.select((s) => s.count),
     })(Counter);
 
     const container = document.createElement('div');
@@ -46,7 +44,7 @@ describe('integration: store -> connect -> render', () => {
     }
 
     const Connected = connect({
-      count: store.select(s => s.count),
+      count: store.select((s) => s.count),
     })(Counter);
 
     const container = document.createElement('div');
@@ -78,15 +76,16 @@ describe('integration: store -> connect -> render', () => {
       return h('span', { className: 'double' }, String(count * 2));
     }
 
-    const ConnectedDisplay = connect({ count: store.select(s => s.count) })(Display);
-    const ConnectedDouble = connect({ count: store.select(s => s.count) })(Double);
+    const ConnectedDisplay = connect({ count: store.select((s) => s.count) })(
+      Display,
+    );
+    const ConnectedDouble = connect({ count: store.select((s) => s.count) })(
+      Double,
+    );
 
     const container = document.createElement('div');
     render(
-      h('div', null,
-        h(ConnectedDisplay, null),
-        h(ConnectedDouble, null),
-      ),
+      h('div', null, h(ConnectedDisplay, null), h(ConnectedDouble, null)),
       container,
     );
 
@@ -115,8 +114,8 @@ describe('integration: store -> connect -> render', () => {
     }
 
     const Connected = connect({
-      name: nameStore.select(s => s.name),
-      count: countStore.select(s => s.count),
+      name: nameStore.select((s) => s.name),
+      count: countStore.select((s) => s.count),
     })(Greeting);
 
     const container = document.createElement('div');
@@ -160,8 +159,8 @@ describe('lifecycle integration', () => {
     });
 
     const Connected = connect(
-      { count: store.select(s => s.count) },
-      { onMount }
+      { count: store.select((s) => s.count) },
+      { onMount },
     )(View);
 
     const container = document.createElement('div');
@@ -193,7 +192,7 @@ describe('lifecycle integration', () => {
     }
 
     const ConnectedApp = connect({
-      show: store.select(s => s.show),
+      show: store.select((s) => s.show),
     })(App);
 
     const container = document.createElement('div');
@@ -213,7 +212,7 @@ describe('lifecycle integration', () => {
 
     const store = createStore({
       state: { count: 0 },
-      actions: { inc: s => ({ count: s.count + 1 }) },
+      actions: { inc: (s) => ({ count: s.count + 1 }) },
     });
 
     function Counter({ count }) {
@@ -221,8 +220,8 @@ describe('lifecycle integration', () => {
     }
 
     const Connected = connect(
-      { count: store.select(s => s.count) },
-      { onMount }
+      { count: store.select((s) => s.count) },
+      { onMount },
     )(Counter);
 
     const container = document.createElement('div');
@@ -277,7 +276,7 @@ describe('lifecycle integration', () => {
     }
 
     const ConnectedApp = connect({
-      show: store.select(s => s.show),
+      show: store.select((s) => s.show),
     })(App);
 
     const container = document.createElement('div');
@@ -297,7 +296,7 @@ describe('onUpdate lifecycle', () => {
     const onUpdate = vi.fn();
     const store = createStore({
       state: { count: 0 },
-      actions: { inc: s => ({ count: s.count + 1 }) },
+      actions: { inc: (s) => ({ count: s.count + 1 }) },
     });
 
     function Counter({ count }) {
@@ -305,8 +304,8 @@ describe('onUpdate lifecycle', () => {
     }
 
     const Connected = connect(
-      { count: store.select(s => s.count) },
-      { onUpdate }
+      { count: store.select((s) => s.count) },
+      { onUpdate },
     )(Counter);
 
     const container = document.createElement('div');
@@ -327,7 +326,7 @@ describe('onUpdate lifecycle', () => {
     const onUpdate = vi.fn();
     const store = createStore({
       state: { count: 0 },
-      actions: { inc: s => ({ count: s.count + 1 }) },
+      actions: { inc: (s) => ({ count: s.count + 1 }) },
     });
 
     function Counter({ count }) {
@@ -335,8 +334,8 @@ describe('onUpdate lifecycle', () => {
     }
 
     const Connected = connect(
-      { count: store.select(s => s.count) },
-      { onUpdate }
+      { count: store.select((s) => s.count) },
+      { onUpdate },
     )(Counter);
 
     const container = document.createElement('div');
@@ -357,7 +356,7 @@ describe('onUpdate lifecycle', () => {
     });
     const store = createStore({
       state: { count: 0 },
-      actions: { inc: s => ({ count: s.count + 1 }) },
+      actions: { inc: (s) => ({ count: s.count + 1 }) },
     });
 
     function Counter({ count }) {
@@ -365,8 +364,8 @@ describe('onUpdate lifecycle', () => {
     }
 
     const Connected = connect(
-      { count: store.select(s => s.count) },
-      { onUpdate }
+      { count: store.select((s) => s.count) },
+      { onUpdate },
     )(Counter);
 
     const container = document.createElement('div');
@@ -387,8 +386,8 @@ describe('onUpdate lifecycle', () => {
     const store = createStore({
       state: { count: 0, show: true },
       actions: {
-        inc: s => ({ ...s, count: s.count + 1 }),
-        hide: s => ({ ...s, show: false }),
+        inc: (s) => ({ ...s, count: s.count + 1 }),
+        hide: (s) => ({ ...s, show: false }),
       },
     });
 
@@ -397,8 +396,8 @@ describe('onUpdate lifecycle', () => {
     }
 
     const Connected = connect(
-      { count: store.select(s => s.count) },
-      { onMount, onUpdate, onDestroy }
+      { count: store.select((s) => s.count) },
+      { onMount, onUpdate, onDestroy },
     )(Counter);
 
     function App({ show }) {
@@ -406,7 +405,7 @@ describe('onUpdate lifecycle', () => {
     }
 
     const ConnectedApp = connect({
-      show: store.select(s => s.show),
+      show: store.select((s) => s.show),
     })(App);
 
     const container = document.createElement('div');
@@ -425,7 +424,7 @@ describe('onUpdate lifecycle', () => {
   it('does not fire when no lifecycle is provided', () => {
     const store = createStore({
       state: { count: 0 },
-      actions: { inc: s => ({ count: s.count + 1 }) },
+      actions: { inc: (s) => ({ count: s.count + 1 }) },
     });
 
     function Counter({ count }) {
@@ -433,7 +432,7 @@ describe('onUpdate lifecycle', () => {
     }
 
     const Connected = connect({
-      count: store.select(s => s.count),
+      count: store.select((s) => s.count),
     })(Counter);
 
     const container = document.createElement('div');
@@ -452,9 +451,12 @@ describe('error boundaries', () => {
       throw new Error('render failed');
     }
 
-    const Connected = connect({}, {
-      onError: ({ error }) => h('div', { className: 'error' }, error.message),
-    })(Broken);
+    const Connected = connect(
+      {},
+      {
+        onError: ({ error }) => h('div', { className: 'error' }, error.message),
+      },
+    )(Broken);
 
     const container = document.createElement('div');
     render(h(Connected, null), container);
@@ -482,9 +484,12 @@ describe('error boundaries', () => {
       return h('div', null, h(BrokenChild, null));
     }
 
-    const Connected = connect({}, {
-      onError: ({ error }) => h('p', null, `Caught: ${error.message}`),
-    })(Parent);
+    const Connected = connect(
+      {},
+      {
+        onError: ({ error }) => h('p', null, `Caught: ${error.message}`),
+      },
+    )(Parent);
 
     const container = document.createElement('div');
     render(h(Connected, null), container);
@@ -497,7 +502,7 @@ describe('error boundaries', () => {
 
     const store = createStore({
       state: { count: 0 },
-      actions: { inc: s => ({ count: s.count + 1 }) },
+      actions: { inc: (s) => ({ count: s.count + 1 }) },
     });
 
     function Counter({ count }) {
@@ -506,8 +511,11 @@ describe('error boundaries', () => {
     }
 
     const Connected = connect(
-      { count: store.select(s => s.count) },
-      { onError: ({ error }) => h('div', { className: 'fallback' }, error.message) }
+      { count: store.select((s) => s.count) },
+      {
+        onError: ({ error }) =>
+          h('div', { className: 'fallback' }, error.message),
+      },
     )(Counter);
 
     const container = document.createElement('div');
@@ -518,7 +526,9 @@ describe('error boundaries', () => {
     store.dispatch('inc');
     flushSync();
 
-    expect(container.querySelector('.fallback').textContent).toBe('re-render failed');
+    expect(container.querySelector('.fallback').textContent).toBe(
+      're-render failed',
+    );
   });
 
   it('recovers on next re-render if error is transient', () => {
@@ -526,7 +536,7 @@ describe('error boundaries', () => {
 
     const store = createStore({
       state: { count: 0 },
-      actions: { inc: s => ({ count: s.count + 1 }) },
+      actions: { inc: (s) => ({ count: s.count + 1 }) },
     });
 
     function Counter({ count }) {
@@ -535,8 +545,8 @@ describe('error boundaries', () => {
     }
 
     const Connected = connect(
-      { count: store.select(s => s.count) },
-      { onError: () => h('div', { className: 'fallback' }, 'error') }
+      { count: store.select((s) => s.count) },
+      { onError: () => h('div', { className: 'fallback' }, 'error') },
     )(Counter);
 
     const container = document.createElement('div');
@@ -555,7 +565,7 @@ describe('error boundaries', () => {
   });
 
   it('onError receives props', () => {
-    const onError = vi.fn(({ error }) => h('div', null, 'fallback'));
+    const onError = vi.fn(() => h('div', null, 'fallback'));
 
     function Broken() {
       throw new Error('test');
@@ -576,9 +586,12 @@ describe('error boundaries', () => {
       throw new Error('fail');
     }
 
-    const Connected = connect({}, {
-      onError: () => null,
-    })(Broken);
+    const Connected = connect(
+      {},
+      {
+        onError: () => null,
+      },
+    )(Broken);
 
     const container = document.createElement('div');
     render(h(Connected, null), container);
@@ -591,14 +604,19 @@ describe('error boundaries', () => {
       throw new Error('original');
     }
 
-    const Connected = connect({}, {
-      onError: () => {
-        throw new Error('fallback also broken');
+    const Connected = connect(
+      {},
+      {
+        onError: () => {
+          throw new Error('fallback also broken');
+        },
       },
-    })(Broken);
+    )(Broken);
 
     const container = document.createElement('div');
-    expect(() => render(h(Connected, null), container)).toThrow('fallback also broken');
+    expect(() => render(h(Connected, null), container)).toThrow(
+      'fallback also broken',
+    );
   });
 
   it('does not fire onUpdate when error is caught during re-render', () => {
@@ -607,7 +625,7 @@ describe('error boundaries', () => {
 
     const store = createStore({
       state: { count: 0 },
-      actions: { inc: s => ({ count: s.count + 1 }) },
+      actions: { inc: (s) => ({ count: s.count + 1 }) },
     });
 
     function Counter({ count }) {
@@ -616,11 +634,11 @@ describe('error boundaries', () => {
     }
 
     const Connected = connect(
-      { count: store.select(s => s.count) },
+      { count: store.select((s) => s.count) },
       {
         onUpdate,
         onError: () => h('div', null, 'fallback'),
-      }
+      },
     )(Counter);
 
     const container = document.createElement('div');

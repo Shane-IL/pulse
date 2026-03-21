@@ -8,7 +8,10 @@ export interface DispatchContext<S = any> {
   nextState: S | undefined;
 }
 
-export type Middleware<S = any> = (ctx: DispatchContext<S>, next: () => void) => void;
+export type Middleware<S = any> = (
+  ctx: DispatchContext<S>,
+  next: () => void,
+) => void;
 
 export interface ActionEntry {
   actionName: string;
@@ -36,7 +39,7 @@ export function logger(): Middleware {
 /**
  * Async action helper — wraps an async operation with loading/success/error dispatches.
  */
-export interface AsyncActionConfig<S, R, A extends any[] = any[]> {
+export interface AsyncActionConfig<R, A extends any[] = any[]> {
   start?: string;
   run: (...args: A) => Promise<R>;
   ok: string;
@@ -45,7 +48,7 @@ export interface AsyncActionConfig<S, R, A extends any[] = any[]> {
 
 export function createAsyncAction<S, R, A extends any[] = any[]>(
   store: Store<S>,
-  config: AsyncActionConfig<S, R, A>,
+  config: AsyncActionConfig<R, A>,
 ): (...args: A) => Promise<R> {
   return async (...args: A): Promise<R> => {
     if (config.start) store.dispatch(config.start);

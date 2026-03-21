@@ -75,12 +75,10 @@ function matchSingle(
     return { params: { '*': normalizedPath } };
   }
 
-  const pathSegments = normalizedPath === '/'
-    ? ['']
-    : normalizedPath.split('/').slice(1);
-  const patternSegments = normalizedPattern === '/'
-    ? ['']
-    : normalizedPattern.split('/').slice(1);
+  const pathSegments =
+    normalizedPath === '/' ? [''] : normalizedPath.split('/').slice(1);
+  const patternSegments =
+    normalizedPattern === '/' ? [''] : normalizedPattern.split('/').slice(1);
 
   // Check for trailing wildcard (prefix matching)
   const hasTrailingWildcard =
@@ -125,10 +123,7 @@ function matchSingle(
   return { params };
 }
 
-function matchRoute(
-  path: string,
-  routes: RouteConfig[],
-): MatchResult | null {
+function matchRoute(path: string, routes: RouteConfig[]): MatchResult | null {
   for (const route of routes) {
     const result = matchSingle(path, route.path);
     if (result) {
@@ -167,7 +162,9 @@ export function createRouter(options: RouterOptions): Router {
 
   function buildState(rawPath: string): RouteState {
     const qIdx = rawPath.indexOf('?');
-    const pathname = normalizePath(qIdx >= 0 ? rawPath.slice(0, qIdx) : rawPath);
+    const pathname = normalizePath(
+      qIdx >= 0 ? rawPath.slice(0, qIdx) : rawPath,
+    );
     const queryStr = qIdx >= 0 ? rawPath.slice(qIdx + 1) : '';
     const query = parseQuery(queryStr);
     const match = matchRoute(pathname, routes);
@@ -202,9 +199,7 @@ export function createRouter(options: RouterOptions): Router {
   // ── Popstate ──
 
   function onPopState(): void {
-    const state = buildState(
-      window.location.pathname + window.location.search,
-    );
+    const state = buildState(window.location.pathname + window.location.search);
     store.dispatch('_sync', state);
   }
 

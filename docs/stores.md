@@ -20,7 +20,7 @@ const todoStore = createStore({
     toggle: (state, id) => ({
       ...state,
       items: state.items.map((item) =>
-        item.id === id ? { ...item, done: !item.done } : item
+        item.id === id ? { ...item, done: !item.done } : item,
       ),
     }),
     remove: (state, id) => ({
@@ -34,12 +34,12 @@ const todoStore = createStore({
 
 ### Store Config
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `state` | yes | Initial state object |
-| `actions` | yes | Named action functions: `(state, payload?) => newState` |
-| `name` | no | Display name (used by devtools and logger middleware) |
-| `middleware` | no | Array of middleware functions (see [Middleware](./middleware.md)) |
+| Field        | Required | Description                                                       |
+| ------------ | -------- | ----------------------------------------------------------------- |
+| `state`      | yes      | Initial state object                                              |
+| `actions`    | yes      | Named action functions: `(state, payload?) => newState`           |
+| `name`       | no       | Display name (used by devtools and logger middleware)             |
+| `middleware` | no       | Array of middleware functions (see [Middleware](./middleware.md)) |
 
 When no middleware is provided, dispatch uses a zero-overhead fast path — no wrapper objects, no function chains.
 
@@ -72,10 +72,13 @@ Actions are pure functions: `(state, payload?) => newState`. They must return a 
 
 ```js
 // GOOD — returns new object
-increment: (state) => ({ ...state, count: state.count + 1 })
+increment: (state) => ({ ...state, count: state.count + 1 });
 
 // BAD — mutates existing state
-increment: (state) => { state.count++; return state; }
+increment: (state) => {
+  state.count++;
+  return state;
+};
 ```
 
 ## Identity Check
@@ -117,7 +120,7 @@ Selectors extract slices of state for use with `connect()`:
 ```js
 const countSelector = todoStore.select((state) => state.items.length);
 const activeSelector = todoStore.select((state) =>
-  state.items.filter((item) => !item.done)
+  state.items.filter((item) => !item.done),
 );
 ```
 
@@ -157,7 +160,9 @@ const authStore = createStore({
 
 const todoStore = createStore({
   state: { items: [] },
-  actions: { /* ... */ },
+  actions: {
+    /* ... */
+  },
 });
 ```
 

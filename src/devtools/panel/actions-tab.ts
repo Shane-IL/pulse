@@ -25,10 +25,14 @@ export function ActionsTab({
   onSliderChange: (index: number) => void;
 }): VNode {
   const filtered = filter
-    ? actionLog.filter((e) => e.actionName.toLowerCase().includes(filter.toLowerCase()))
+    ? actionLog.filter((e) =>
+        e.actionName.toLowerCase().includes(filter.toLowerCase()),
+      )
     : actionLog;
 
-  return h('div', { style: { height: '100%', display: 'flex', flexDirection: 'column' } },
+  return h(
+    'div',
+    { style: { height: '100%', display: 'flex', flexDirection: 'column' } },
     // Filter
     h('input', {
       style: s.filterInput,
@@ -38,7 +42,9 @@ export function ActionsTab({
     }),
     // Slider
     actionLog.length > 0
-      ? h('div', { style: { flexShrink: '0' } },
+      ? h(
+          'div',
+          { style: { flexShrink: '0' } },
           h('input', {
             type: 'range',
             style: s.slider,
@@ -47,25 +53,41 @@ export function ActionsTab({
             value: String(timeTravelIndex),
             onInput: (e: any) => onSliderChange(Number(e.target.value)),
           }),
-          h('div', { style: { color: s.colors.overlay0, fontSize: '10px', marginBottom: '4px' } },
+          h(
+            'div',
+            {
+              style: {
+                color: s.colors.overlay0,
+                fontSize: '10px',
+                marginBottom: '4px',
+              },
+            },
             `${timeTravelIndex + 1} / ${actionLog.length}`,
           ),
         )
       : null,
     // Action list
-    h('div', { style: { flex: '1', overflow: 'auto' } },
-      ...filtered.map((entry, idx) => {
+    h(
+      'div',
+      { style: { flex: '1', overflow: 'auto' } },
+      ...filtered.map((entry) => {
         // Map filtered index back to actual index
         const actualIdx = actionLog.indexOf(entry);
-        return h('div', {
-          key: actualIdx,
-          style: s.actionEntry(actualIdx === timeTravelIndex),
-          onClick: () => onTravelTo(actualIdx),
-        },
-          h('span', null,
+        return h(
+          'div',
+          {
+            key: actualIdx,
+            style: s.actionEntry(actualIdx === timeTravelIndex),
+            onClick: () => onTravelTo(actualIdx),
+          },
+          h(
+            'span',
+            null,
             h('span', { style: s.actionName }, entry.actionName),
             entry.payload !== undefined
-              ? h('span', { style: { color: s.colors.subtext0, marginLeft: '8px' } },
+              ? h(
+                  'span',
+                  { style: { color: s.colors.subtext0, marginLeft: '8px' } },
                   typeof entry.payload === 'object'
                     ? JSON.stringify(entry.payload)
                     : String(entry.payload),
@@ -76,7 +98,9 @@ export function ActionsTab({
         );
       }),
       filtered.length === 0
-        ? h('div', { style: { color: s.colors.overlay0, padding: '8px' } },
+        ? h(
+            'div',
+            { style: { color: s.colors.overlay0, padding: '8px' } },
             actionLog.length === 0 ? 'No actions yet' : 'No matching actions',
           )
         : null,

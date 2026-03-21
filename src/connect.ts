@@ -44,8 +44,7 @@ export function connect(
     (ConnectedComponent as any)._bindings = b;
     (ConnectedComponent as any)._innerComponent = Component;
     if (lifecycle) (ConnectedComponent as any)._lifecycle = lifecycle;
-    ConnectedComponent.displayName =
-      `Connected(${(Component as any).displayName || Component.name || 'Anonymous'})`;
+    ConnectedComponent.displayName = `Connected(${(Component as any).displayName || Component.name || 'Anonymous'})`;
 
     return ConnectedComponent;
   };
@@ -92,7 +91,8 @@ export class ComponentInstance {
     }
 
     // Lifecycle: call onMount after subscriptions are live
-    const lifecycle: Lifecycle | undefined = (this.connectedFn as any)._lifecycle;
+    const lifecycle: Lifecycle | undefined = (this.connectedFn as any)
+      ._lifecycle;
     if (lifecycle?.onMount) {
       const cleanup = lifecycle.onMount({
         dom: this.lastVTree?._dom,
@@ -142,7 +142,8 @@ export class ComponentInstance {
       this._mountCleanup();
       this._mountCleanup = null;
     }
-    const lifecycle: Lifecycle | undefined = (this.connectedFn as any)._lifecycle;
+    const lifecycle: Lifecycle | undefined = (this.connectedFn as any)
+      ._lifecycle;
     if (lifecycle?.onDestroy) {
       lifecycle.onDestroy({ props: this.props });
     }
@@ -165,7 +166,10 @@ export function shallowEqual(a: any, b: any): boolean {
   if (keysA.length !== keysB.length) return false;
 
   for (const key of keysA) {
-    if (!Object.prototype.hasOwnProperty.call(b, key) || !Object.is(a[key], b[key])) {
+    if (
+      !Object.prototype.hasOwnProperty.call(b, key) ||
+      !Object.is(a[key], b[key])
+    ) {
       return false;
     }
   }

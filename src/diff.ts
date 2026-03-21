@@ -2,16 +2,16 @@ import { TEXT_NODE } from './vnode';
 import type { VNode } from './vnode';
 
 export const PATCH = {
-  CREATE:   'CREATE',
-  REMOVE:   'REMOVE',
-  REPLACE:  'REPLACE',
-  UPDATE:   'UPDATE',
-  TEXT:     'TEXT',
-  MOVE:     'MOVE',
+  CREATE: 'CREATE',
+  REMOVE: 'REMOVE',
+  REPLACE: 'REPLACE',
+  UPDATE: 'UPDATE',
+  TEXT: 'TEXT',
+  MOVE: 'MOVE',
   CHILDREN: 'CHILDREN',
 } as const;
 
-export type PatchType = typeof PATCH[keyof typeof PATCH];
+export type PatchType = (typeof PATCH)[keyof typeof PATCH];
 
 export interface PropPatches {
   set: Record<string, any>;
@@ -24,7 +24,12 @@ export type Patch =
   | { type: typeof PATCH.REPLACE; oldVNode: VNode; newVNode: VNode }
   | { type: typeof PATCH.UPDATE; target: VNode; propPatches: PropPatches }
   | { type: typeof PATCH.TEXT; oldVNode: VNode; newVNode: VNode }
-  | { type: typeof PATCH.MOVE; vnode: VNode; anchor: VNode | null; childPatches: Patch[] }
+  | {
+      type: typeof PATCH.MOVE;
+      vnode: VNode;
+      anchor: VNode | null;
+      childPatches: Patch[];
+    }
   | { type: typeof PATCH.CHILDREN; parent: VNode; childPatches: Patch[] };
 
 export function diff(oldVNode: VNode | null, newVNode: VNode | null): Patch[] {
@@ -105,7 +110,7 @@ function warnChildKeys(children: (VNode | null)[], label: string): void {
       if (seen.has(child.key)) {
         console.warn(
           `[pulse] Duplicate key "${String(child.key)}" in ${label} children. ` +
-          `Keys must be unique among siblings.`,
+            `Keys must be unique among siblings.`,
         );
       }
       seen.add(child.key);
@@ -117,13 +122,16 @@ function warnChildKeys(children: (VNode | null)[], label: string): void {
   if (keyedCount > 0 && unkeyedCount > 0) {
     console.warn(
       `[pulse] Mixed keyed and unkeyed children in ${label} list ` +
-      `(${keyedCount} keyed, ${unkeyedCount} unkeyed). ` +
-      `Either all children should have keys or none should.`,
+        `(${keyedCount} keyed, ${unkeyedCount} unkeyed). ` +
+        `Either all children should have keys or none should.`,
     );
   }
 }
 
-function diffChildren(oldChildren: (VNode | null)[], newChildren: VNode[]): Patch[] {
+function diffChildren(
+  oldChildren: (VNode | null)[],
+  newChildren: VNode[],
+): Patch[] {
   if (process.env.NODE_ENV !== 'production') {
     warnChildKeys(oldChildren, 'old');
     warnChildKeys(newChildren, 'new');
@@ -194,9 +202,8 @@ function diffChildren(oldChildren: (VNode | null)[], newChildren: VNode[]): Patc
 
     while (newStartIdx <= newEndIdx) {
       newStartVNode = newChildren[newStartIdx];
-      const oldIdx = newStartVNode.key != null
-        ? keyMap.get(newStartVNode.key)
-        : undefined;
+      const oldIdx =
+        newStartVNode.key != null ? keyMap.get(newStartVNode.key) : undefined;
 
       if (oldIdx !== undefined) {
         const matchedOld = oldChildren[oldIdx]!;

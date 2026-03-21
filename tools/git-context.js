@@ -17,7 +17,13 @@
  */
 
 import { execSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+  appendFileSync,
+} from 'node:fs';
 import { join } from 'node:path';
 import { createInterface } from 'node:readline';
 
@@ -87,7 +93,9 @@ async function cmdWrite(ref, useStdin) {
 
     const header = `# Context for ${shortHash(hash)}: ${msg}\n\n`;
     writeFileSync(path, header + body + '\n', 'utf-8');
-    console.log(`${exists ? 'Updated' : 'Wrote'} context for ${shortHash(hash)}`);
+    console.log(
+      `${exists ? 'Updated' : 'Wrote'} context for ${shortHash(hash)}`,
+    );
     return;
   }
 
@@ -121,7 +129,10 @@ async function cmdWrite(ref, useStdin) {
     console.log(`Context saved for ${shortHash(hash)}`);
   } else {
     // No editor: simple line-by-line prompt
-    const rl = createInterface({ input: process.stdin, output: process.stdout });
+    const rl = createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
     const ask = (q) => new Promise((res) => rl.question(q, res));
 
     const reasoning = await ask('Reasoning: ');
@@ -189,7 +200,9 @@ function cmdTrail(base) {
   try {
     mergeBase = git(`merge-base ${base} HEAD`);
   } catch {
-    console.error(`Could not find merge base with '${base}'. Try: git-context trail main`);
+    console.error(
+      `Could not find merge base with '${base}'. Try: git-context trail main`,
+    );
     process.exitCode = 1;
     return;
   }
@@ -228,7 +241,8 @@ function cmdInit() {
   if (!existsSync(hooksDir)) mkdirSync(hooksDir, { recursive: true });
 
   const hookPath = join(hooksDir, 'post-commit');
-  const hookLine = '\n# git-context: remind to write context\necho "\\033[33m💡 Write commit context: node tools/git-context.js write\\033[0m"\n';
+  const hookLine =
+    '\n# git-context: remind to write context\necho "\\033[33m💡 Write commit context: node tools/git-context.js write\\033[0m"\n';
 
   if (existsSync(hookPath)) {
     const existing = readFileSync(hookPath, 'utf-8');

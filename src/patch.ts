@@ -50,7 +50,12 @@ export function applyProps(
   }
 }
 
-function setProp(el: HTMLElement, key: string, value: any, oldValue: any): void {
+function setProp(
+  el: HTMLElement,
+  key: string,
+  value: any,
+  oldValue: any,
+): void {
   if (key.startsWith('on')) {
     const eventName = key.slice(2).toLowerCase();
     if (oldValue) el.removeEventListener(eventName, oldValue);

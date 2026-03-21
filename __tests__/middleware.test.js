@@ -122,7 +122,9 @@ describe('middleware', () => {
   it('unknown action throws with middleware', () => {
     const noop = (ctx, next) => next();
     const store = makeCounter([noop]);
-    expect(() => store.dispatch('unknown')).toThrow('[pulse] Unknown action: "unknown"');
+    expect(() => store.dispatch('unknown')).toThrow(
+      '[pulse] Unknown action: "unknown"',
+    );
   });
 
   it('store.name is set from config', () => {
@@ -276,7 +278,9 @@ describe('createAsyncAction', () => {
     const store = makeAsyncStore();
     const load = createAsyncAction(store, {
       start: 'fetchStart',
-      run: async () => { throw new Error('network'); },
+      run: async () => {
+        throw new Error('network');
+      },
       ok: 'fetchOk',
       fail: 'fetchFail',
     });
@@ -290,7 +294,9 @@ describe('createAsyncAction', () => {
   it('throws if no fail action and run rejects', async () => {
     const store = makeAsyncStore();
     const load = createAsyncAction(store, {
-      run: async () => { throw new Error('boom'); },
+      run: async () => {
+        throw new Error('boom');
+      },
       ok: 'fetchOk',
     });
 

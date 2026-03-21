@@ -7,7 +7,7 @@ export default defineConfig({
       entry: resolve(__dirname, 'src/devtools/index.ts'),
       name: 'PulseDevtools',
       formats: ['es', 'cjs'],
-      fileName: (format) => format === 'es' ? 'devtools.js' : 'devtools.cjs',
+      fileName: (format) => (format === 'es' ? 'devtools.js' : 'devtools.cjs'),
     },
     outDir: 'dist',
     emptyOutDir: false,

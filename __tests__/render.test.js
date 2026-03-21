@@ -12,13 +12,17 @@ describe('render', () => {
   it('mounts nested tree', () => {
     const container = document.createElement('div');
     render(
-      h('div', { className: 'app' },
+      h(
+        'div',
+        { className: 'app' },
         h('h1', null, 'Title'),
         h('p', null, 'Body'),
       ),
       container,
     );
-    expect(container.innerHTML).toBe('<div class="app"><h1>Title</h1><p>Body</p></div>');
+    expect(container.innerHTML).toBe(
+      '<div class="app"><h1>Title</h1><p>Body</p></div>',
+    );
   });
 
   it('handles text children', () => {
@@ -59,10 +63,7 @@ describe('render', () => {
   it('handles Fragment', () => {
     const container = document.createElement('div');
     render(
-      h(Fragment, null,
-        h('span', null, 'a'),
-        h('span', null, 'b'),
-      ),
+      h(Fragment, null, h('span', null, 'a'), h('span', null, 'b')),
       container,
     );
     expect(container.innerHTML).toBe('<span>a</span><span>b</span>');
@@ -70,7 +71,8 @@ describe('render', () => {
 
   it('handles conditional children', () => {
     const container = document.createElement('div');
-    render(h('div', null, true && h('span', null, 'yes')), container);
+    const show = true;
+    render(h('div', null, show && h('span', null, 'yes')), container);
     expect(container.innerHTML).toBe('<div><span>yes</span></div>');
   });
 });

@@ -35,6 +35,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "lint": "eslint .",
+    "format": "prettier --write .",
     "prepublishOnly": "npm test && npm run build"
   },
   "keywords": [
@@ -50,8 +52,12 @@
   ],
   "license": "MIT",
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.1.0",
     "jsdom": "^25.0.0",
+    "prettier": "^3.8.1",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.57.1",
     "vite": "^6.0.0",
     "vitest": "^3.0.0"
   }

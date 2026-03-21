@@ -57,10 +57,10 @@ Every middleware receives a `DispatchContext`:
 
 ```ts
 interface DispatchContext<S> {
-  store: Store<S>;         // the store being dispatched on
-  actionName: string;      // 'increment', 'set', etc.
-  payload: any;            // the dispatch payload
-  prevState: S;            // state before the action
+  store: Store<S>; // the store being dispatched on
+  actionName: string; // 'increment', 'set', etc.
+  payload: any; // the dispatch payload
+  prevState: S; // state before the action
   nextState: S | undefined; // state after — populated after next()
 }
 ```
@@ -122,11 +122,12 @@ interface ActionEntry {
   payload: any;
   prevState: any;
   nextState: any;
-  timestamp: number;  // Date.now()
+  timestamp: number; // Date.now()
 }
 ```
 
 **Options:**
+
 - `maxEntries` — cap the history size. When exceeded, oldest entries are removed. Defaults to `Infinity`.
 
 The history array is owned by you — read it, clear it, serialize it, whatever you need. `actionHistory` just pushes to it.
@@ -188,7 +189,7 @@ const persister = (ctx, next) => {
 Middleware runs in array order. The first middleware is the outermost wrapper:
 
 ```js
-middleware: [auth, validator, logger(), actionHistory(history)]
+middleware: [auth, validator, logger(), actionHistory(history)];
 // Execution: auth → validator → logger → actionHistory → core action
 //            auth ← validator ← logger ← actionHistory ← (return)
 ```
@@ -204,8 +205,8 @@ const userStore = createStore({
   state: { user: null, loading: false, error: null },
   actions: {
     fetchStart: (s) => ({ ...s, loading: true, error: null }),
-    fetchOk:    (s, user) => ({ ...s, loading: false, user }),
-    fetchFail:  (s, error) => ({ ...s, loading: false, error }),
+    fetchOk: (s, user) => ({ ...s, loading: false, user }),
+    fetchFail: (s, error) => ({ ...s, loading: false, error }),
   },
 });
 
@@ -227,10 +228,10 @@ const user = await loadUser(42);
 
 ```ts
 interface AsyncActionConfig {
-  start?: string;   // action dispatched immediately (optional)
-  run: (...args) => Promise<R>;  // your async work
-  ok: string;       // action dispatched with the resolved value
-  fail?: string;    // action dispatched with the error message (optional)
+  start?: string; // action dispatched immediately (optional)
+  run: (...args) => Promise<R>; // your async work
+  ok: string; // action dispatched with the resolved value
+  fail?: string; // action dispatched with the error message (optional)
 }
 ```
 

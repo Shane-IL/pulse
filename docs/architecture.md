@@ -83,12 +83,14 @@ render(vnode, container)
 ### First Mount vs. Update
 
 **First mount** (`render()` called on a fresh container):
+
 1. `expand()` the VNode tree
 2. `createDOMNode()` builds real DOM
 3. Append to container
 4. Mount all component instances
 
 **Update** (`render()` called again on same container):
+
 1. `expand()` the new VNode tree
 2. `diff()` old tree vs. new tree → patch list
 3. `applyPatches()` mutates the DOM
@@ -148,14 +150,14 @@ This is O(n) for common cases (append, prepend, remove) with O(n) key-map fallba
 
 ### Patch Types
 
-| Type | When | Effect |
-|------|------|--------|
-| `CREATE` | New node has no old counterpart | `createDOMNode()` + insert |
-| `REMOVE` | Old node has no new counterpart | `removeChild()` |
-| `REPLACE` | Type or key changed | `createDOMNode()` + `replaceChild()` |
-| `UPDATE` | Same type, props differ | `applyProps()` (add/remove/change attributes) |
-| `TEXT` | Text node content changed | Update `nodeValue` |
-| `MOVE` | Key-matched node at different position | `insertBefore()` |
+| Type      | When                                   | Effect                                        |
+| --------- | -------------------------------------- | --------------------------------------------- |
+| `CREATE`  | New node has no old counterpart        | `createDOMNode()` + insert                    |
+| `REMOVE`  | Old node has no new counterpart        | `removeChild()`                               |
+| `REPLACE` | Type or key changed                    | `createDOMNode()` + `replaceChild()`          |
+| `UPDATE`  | Same type, props differ                | `applyProps()` (add/remove/change attributes) |
+| `TEXT`    | Text node content changed              | Update `nodeValue`                            |
+| `MOVE`    | Key-matched node at different position | `insertBefore()`                              |
 
 ## Component Expansion
 
@@ -184,6 +186,7 @@ VNode { type: 'div', children: [...], _instance: inst }
 ```
 
 Connected components create a `ComponentInstance` that:
+
 - Tracks the expanded VNode tree (`lastVTree`)
 - Holds store subscriptions
 - Gets a re-render callback via the scheduler
@@ -232,9 +235,9 @@ store.dispatch('increment')
 The scheduler uses a `Set` for its queue. If the same connected component is triggered twice in the same tick (e.g., two stores it subscribes to both change), it only appears once in the queue. And because `queueMicrotask` runs after all synchronous code:
 
 ```js
-store.dispatch('a');  // schedules re-render (once)
-store.dispatch('b');  // same callback already in Set — no-op
-store.dispatch('c');  // same callback already in Set — no-op
+store.dispatch('a'); // schedules re-render (once)
+store.dispatch('b'); // same callback already in Set — no-op
+store.dispatch('c'); // same callback already in Set — no-op
 // ── microtask boundary ──
 // Single re-render runs here, sees count = 3
 ```
@@ -242,6 +245,7 @@ store.dispatch('c');  // same callback already in Set — no-op
 ## DOM Reference Stamping
 
 Every VNode gets a `_dom` reference pointing to its real DOM node. This is stamped during:
+
 - `createDOMNode()` — initial creation
 - `diff()` — `newVNode._dom = oldVNode._dom` when types match (transfer)
 - `reRenderInstance()` — fallback transfer when `_dom` isn't set
@@ -286,18 +290,18 @@ These warnings are dead-code eliminated by Vite in production builds.
 
 ## File Reference
 
-| File | Size | Responsibility |
-|------|------|----------------|
-| `src/vnode.ts` | ~60 LOC | VNode types, Lifecycle interface, text node creation, child normalization |
-| `src/createElement.ts` | ~18 LOC | JSX pragma `h()`, key extraction |
-| `src/store.ts` | ~120 LOC | Immutable store with dispatch/subscribe/select, middleware chain |
-| `src/middleware.ts` | ~90 LOC | Middleware types, `logger`, `actionHistory`, `createAsyncAction` |
-| `src/scheduler.ts` | ~20 LOC | Microtask-based batched update queue |
-| `src/diff.ts` | ~240 LOC | VDOM tree diffing with two-pointer children reconciliation, key warnings |
-| `src/patch.ts` | ~150 LOC | DOM creation and mutation |
-| `src/connect.ts` | ~160 LOC | `connect()` HOC, `ComponentInstance`, `shallowEqual`, devtools hooks |
-| `src/render.ts` | ~205 LOC | `render()`, `expand()`, `reRenderInstance()`, error boundaries |
-| `src/router.ts` | ~270 LOC | `createRouter()`, path matching, Route/Link/Redirect components |
-| `src/devtools/` | ~600 LOC | Store registry, time-travel, browser panel (built with Pulse) |
-| **Core total** | **~1330 LOC** | **~6 KB gzipped** |
-| **Devtools total** | **~600 LOC** | **~9 KB gzipped** (separate entry point) |
+| File                   | Size          | Responsibility                                                            |
+| ---------------------- | ------------- | ------------------------------------------------------------------------- |
+| `src/vnode.ts`         | ~60 LOC       | VNode types, Lifecycle interface, text node creation, child normalization |
+| `src/createElement.ts` | ~18 LOC       | JSX pragma `h()`, key extraction                                          |
+| `src/store.ts`         | ~120 LOC      | Immutable store with dispatch/subscribe/select, middleware chain          |
+| `src/middleware.ts`    | ~90 LOC       | Middleware types, `logger`, `actionHistory`, `createAsyncAction`          |
+| `src/scheduler.ts`     | ~20 LOC       | Microtask-based batched update queue                                      |
+| `src/diff.ts`          | ~240 LOC      | VDOM tree diffing with two-pointer children reconciliation, key warnings  |
+| `src/patch.ts`         | ~150 LOC      | DOM creation and mutation                                                 |
+| `src/connect.ts`       | ~160 LOC      | `connect()` HOC, `ComponentInstance`, `shallowEqual`, devtools hooks      |
+| `src/render.ts`        | ~205 LOC      | `render()`, `expand()`, `reRenderInstance()`, error boundaries            |
+| `src/router.ts`        | ~270 LOC      | `createRouter()`, path matching, Route/Link/Redirect components           |
+| `src/devtools/`        | ~600 LOC      | Store registry, time-travel, browser panel (built with Pulse)             |
+| **Core total**         | **~1330 LOC** | **~6 KB gzipped**                                                         |
+| **Devtools total**     | **~600 LOC**  | **~9 KB gzipped** (separate entry point)                                  |

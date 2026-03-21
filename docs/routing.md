@@ -12,7 +12,7 @@ const router = createRouter({
     { path: '/' },
     { path: '/users/:id' },
     { path: '/settings' },
-    { path: '*' },  // catch-all
+    { path: '*' }, // catch-all
   ],
 });
 ```
@@ -21,14 +21,14 @@ const router = createRouter({
 
 ```ts
 interface Router {
-  store: Store<RouteState>;    // the route state store
+  store: Store<RouteState>; // the route state store
   navigate: (path: string) => void;
   redirect: (path: string) => void;
   back: () => void;
   forward: () => void;
   destroy: () => void;
-  Route: ComponentFunction;    // connected component
-  Link: ComponentFunction;     // plain component
+  Route: ComponentFunction; // connected component
+  Link: ComponentFunction; // plain component
   Redirect: ComponentFunction; // plain component
 }
 ```
@@ -39,10 +39,10 @@ The router's store holds this state:
 
 ```ts
 interface RouteState {
-  path: string;                      // "/users/42"
-  params: Record<string, string>;    // { id: "42" }
-  query: Record<string, string>;     // { tab: "settings" }
-  matched: string | null;            // "/users/:id" — the first matching pattern
+  path: string; // "/users/42"
+  params: Record<string, string>; // { id: "42" }
+  query: Record<string, string>; // { tab: "settings" }
+  matched: string | null; // "/users/:id" — the first matching pattern
 }
 ```
 
@@ -113,7 +113,9 @@ function Nav() {
 - Extra props are spread onto the `<a>` element:
 
 ```jsx
-<Link to="/about" className="nav-link" id="about-link">About</Link>
+<Link to="/about" className="nav-link" id="about-link">
+  About
+</Link>
 ```
 
 ## Redirect Component
@@ -165,29 +167,41 @@ Routes are matched in definition order — the first match wins.
 ### Static Paths
 
 ```js
-{ path: '/' }          // matches exactly "/"
-{ path: '/about' }     // matches exactly "/about"
+{
+  path: '/';
+} // matches exactly "/"
+{
+  path: '/about';
+} // matches exactly "/about"
 ```
 
 ### Dynamic Parameters
 
 ```js
-{ path: '/users/:id' }           // matches "/users/42" → { id: "42" }
-{ path: '/posts/:year/:slug' }   // matches "/posts/2024/hello" → { year: "2024", slug: "hello" }
+{
+  path: '/users/:id';
+} // matches "/users/42" → { id: "42" }
+{
+  path: '/posts/:year/:slug';
+} // matches "/posts/2024/hello" → { year: "2024", slug: "hello" }
 ```
 
 ### Wildcard Suffix
 
 ```js
-{ path: '/dashboard/*' }   // matches "/dashboard/settings" → { "*": "settings" }
-                            // matches "/dashboard/a/b/c"    → { "*": "a/b/c" }
-                            // matches "/dashboard"          → { "*": "" }
+{
+  path: '/dashboard/*';
+} // matches "/dashboard/settings" → { "*": "settings" }
+// matches "/dashboard/a/b/c"    → { "*": "a/b/c" }
+// matches "/dashboard"          → { "*": "" }
 ```
 
 ### Catch-All
 
 ```js
-{ path: '*' }   // matches any path → { "*": "/whatever/path" }
+{
+  path: '*';
+} // matches any path → { "*": "/whatever/path" }
 ```
 
 ### Trailing Slashes
@@ -254,7 +268,11 @@ const Breadcrumb = connect({
   params: router.store.select((s) => s.params),
   path: router.store.select((s) => s.path),
 })(function Breadcrumb({ params, path }) {
-  return <span>{path} — {JSON.stringify(params)}</span>;
+  return (
+    <span>
+      {path} — {JSON.stringify(params)}
+    </span>
+  );
 });
 ```
 
@@ -274,10 +292,7 @@ Use the `initialPath` option to set the starting path without depending on `wind
 
 ```js
 const router = createRouter({
-  routes: [
-    { path: '/' },
-    { path: '/users/:id' },
-  ],
+  routes: [{ path: '/' }, { path: '/users/:id' }],
   initialPath: '/users/42',
 });
 
@@ -291,11 +306,7 @@ router.store.getState();
 import { h, render, createRouter } from '@shane_il/pulse';
 
 const router = createRouter({
-  routes: [
-    { path: '/' },
-    { path: '/users/:id' },
-    { path: '*' },
-  ],
+  routes: [{ path: '/' }, { path: '/users/:id' }, { path: '*' }],
 });
 
 const { Route, Link } = router;

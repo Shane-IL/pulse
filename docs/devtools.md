@@ -59,7 +59,7 @@ const store = instrumentStore({
   name: 'counter',
   state: { count: 0 },
   actions: { increment: (s) => ({ ...s, count: s.count + 1 }) },
-  middleware: [logger()],  // logger runs in addition to actionHistory
+  middleware: [logger()], // logger runs in addition to actionHistory
 });
 ```
 
@@ -70,9 +70,9 @@ const store = instrumentStore({
 ```js
 import { openPanel, closePanel, togglePanel } from '@shane_il/pulse/devtools';
 
-openPanel();    // show the panel
-closePanel();   // hide the panel
-togglePanel();  // toggle visibility
+openPanel(); // show the panel
+closePanel(); // hide the panel
+togglePanel(); // toggle visibility
 ```
 
 Or press **Ctrl+Shift+P** anywhere in the app.
@@ -139,6 +139,7 @@ import { createStore } from '@shane_il/pulse';
 ```
 
 Bundle sizes:
+
 - **Core** (`@shane_il/pulse`): ~6 KB gzipped
 - **Devtools** (`@shane_il/pulse/devtools`): ~9 KB gzipped
 
@@ -162,10 +163,10 @@ The devtools singleton is exposed on `window.__PULSE_DEVTOOLS__` for console deb
 
 ```js
 // In browser console
-__PULSE_DEVTOOLS__.getStoreNames()    // ['todos', 'counter']
-__PULSE_DEVTOOLS__.getStoreState('todos')  // { items: [...], nextId: 3 }
-__PULSE_DEVTOOLS__.getHistory('todos')     // [ActionEntry, ActionEntry, ...]
-__PULSE_DEVTOOLS__.getComponents()    // [{ id: 1, displayName: 'TodoList', storeNames: ['todos'] }]
+__PULSE_DEVTOOLS__.getStoreNames(); // ['todos', 'counter']
+__PULSE_DEVTOOLS__.getStoreState('todos'); // { items: [...], nextId: 3 }
+__PULSE_DEVTOOLS__.getHistory('todos'); // [ActionEntry, ActionEntry, ...]
+__PULSE_DEVTOOLS__.getComponents(); // [{ id: 1, displayName: 'TodoList', storeNames: ['todos'] }]
 ```
 
 ## Devtools Without the Panel

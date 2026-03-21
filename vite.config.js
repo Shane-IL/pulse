@@ -7,7 +7,7 @@ export default defineConfig({
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'Pulse',
       formats: ['es', 'cjs'],
-      fileName: (format) => format === 'es' ? 'pulse.js' : 'pulse.cjs',
+      fileName: (format) => (format === 'es' ? 'pulse.js' : 'pulse.cjs'),
     },
     minify: 'esbuild',
     sourcemap: true,

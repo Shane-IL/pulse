@@ -1,0 +1,5 @@
+dist/
+node_modules/
+examples/
+git-context-workspace/
+package-lock.json

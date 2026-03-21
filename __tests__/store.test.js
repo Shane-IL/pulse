@@ -33,7 +33,9 @@ describe('createStore', () => {
 
   it('dispatch throws on unknown action', () => {
     const store = makeCounter();
-    expect(() => store.dispatch('unknown')).toThrow('[pulse] Unknown action: "unknown"');
+    expect(() => store.dispatch('unknown')).toThrow(
+      '[pulse] Unknown action: "unknown"',
+    );
   });
 
   it('subscribe listener is called on dispatch', () => {

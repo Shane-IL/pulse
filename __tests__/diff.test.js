@@ -1,14 +1,15 @@
 import { describe, it, expect, vi } from 'vitest';
 import { diff, PATCH } from '../src/diff';
 import { h } from '../src/createElement';
-import { TEXT_NODE, createTextVNode } from '../src/vnode';
+import { createTextVNode } from '../src/vnode';
 
 /** Recursively collect all patches of a given type, including inside CHILDREN. */
 function collectPatches(patches, type) {
   const result = [];
   for (const p of patches) {
     if (p.type === type) result.push(p);
-    if (p.type === PATCH.CHILDREN) result.push(...collectPatches(p.childPatches, type));
+    if (p.type === PATCH.CHILDREN)
+      result.push(...collectPatches(p.childPatches, type));
   }
   return result;
 }
@@ -41,7 +42,7 @@ describe('diff', () => {
     const old = h('div', { className: 'a' });
     const next = h('div', { className: 'b' });
     const patches = diff(old, next);
-    expect(patches.some(p => p.type === PATCH.UPDATE)).toBe(true);
+    expect(patches.some((p) => p.type === PATCH.UPDATE)).toBe(true);
   });
 
   it('identical vnodes produce no patches', () => {
@@ -72,8 +73,19 @@ describe('diff', () => {
 
 describe('diff children', () => {
   it('append: [a,b] -> [a,b,c]', () => {
-    const old = h('div', null, h('span', { key: 'a' }), h('span', { key: 'b' }));
-    const next = h('div', null, h('span', { key: 'a' }), h('span', { key: 'b' }), h('span', { key: 'c' }));
+    const old = h(
+      'div',
+      null,
+      h('span', { key: 'a' }),
+      h('span', { key: 'b' }),
+    );
+    const next = h(
+      'div',
+      null,
+      h('span', { key: 'a' }),
+      h('span', { key: 'b' }),
+      h('span', { key: 'c' }),
+    );
     const patches = diff(old, next);
     const creates = collectPatches(patches, PATCH.CREATE);
     expect(creates).toHaveLength(1);
@@ -84,7 +96,12 @@ describe('diff children', () => {
     const b = h('span', { key: 'b' });
     const c = h('span', { key: 'c' });
     const old = h('div', null, a, b, c);
-    const next = h('div', null, h('span', { key: 'a' }), h('span', { key: 'b' }));
+    const next = h(
+      'div',
+      null,
+      h('span', { key: 'a' }),
+      h('span', { key: 'b' }),
+    );
     const patches = diff(old, next);
     const removes = collectPatches(patches, PATCH.REMOVE);
     expect(removes).toHaveLength(1);
@@ -107,20 +124,34 @@ describe('diff children', () => {
   });
 
   it('keyed swap produces MOVE patches', () => {
-    const old = h('div', null, h('span', { key: 'a' }), h('span', { key: 'b' }));
-    const next = h('div', null, h('span', { key: 'b' }), h('span', { key: 'a' }));
+    const old = h(
+      'div',
+      null,
+      h('span', { key: 'a' }),
+      h('span', { key: 'b' }),
+    );
+    const next = h(
+      'div',
+      null,
+      h('span', { key: 'b' }),
+      h('span', { key: 'a' }),
+    );
     const patches = diff(old, next);
     const moves = collectPatches(patches, PATCH.MOVE);
     expect(moves.length).toBeGreaterThan(0);
   });
 
   it('keyed remove middle', () => {
-    const old = h('div', null,
+    const old = h(
+      'div',
+      null,
       h('span', { key: '1' }),
       h('span', { key: '2' }),
       h('span', { key: '3' }),
     );
-    const next = h('div', null,
+    const next = h(
+      'div',
+      null,
       h('span', { key: '1' }),
       h('span', { key: '3' }),
     );
@@ -134,43 +165,55 @@ describe('child key warnings', () => {
   it('warns on duplicate keys in new children', () => {
     const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const old = h('div', null);
-    const next = h('div', null,
+    const next = h(
+      'div',
+      null,
       h('span', { key: 'a' }),
       h('span', { key: 'a' }),
     );
     diff(old, next);
-    expect(spy).toHaveBeenCalledWith(expect.stringContaining('Duplicate key "a"'));
+    expect(spy).toHaveBeenCalledWith(
+      expect.stringContaining('Duplicate key "a"'),
+    );
     spy.mockRestore();
   });
 
   it('warns on duplicate keys in old children', () => {
     const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const old = h('div', null,
+    const old = h(
+      'div',
+      null,
       h('span', { key: 'x' }),
       h('span', { key: 'x' }),
     );
     const next = h('div', null, h('span', { key: 'x' }));
     diff(old, next);
-    expect(spy).toHaveBeenCalledWith(expect.stringContaining('Duplicate key "x"'));
+    expect(spy).toHaveBeenCalledWith(
+      expect.stringContaining('Duplicate key "x"'),
+    );
     spy.mockRestore();
   });
 
   it('warns on mixed keyed and unkeyed children', () => {
     const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const old = h('div', null);
-    const next = h('div', null,
-      h('span', { key: 'a' }),
-      h('span', null),
-    );
+    const next = h('div', null, h('span', { key: 'a' }), h('span', null));
     diff(old, next);
-    expect(spy).toHaveBeenCalledWith(expect.stringContaining('Mixed keyed and unkeyed'));
+    expect(spy).toHaveBeenCalledWith(
+      expect.stringContaining('Mixed keyed and unkeyed'),
+    );
     spy.mockRestore();
   });
 
   it('does not warn when all children are keyed', () => {
     const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const old = h('div', null, h('span', { key: 'a' }));
-    const next = h('div', null, h('span', { key: 'a' }), h('span', { key: 'b' }));
+    const next = h(
+      'div',
+      null,
+      h('span', { key: 'a' }),
+      h('span', { key: 'b' }),
+    );
     diff(old, next);
     expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
@@ -194,10 +237,7 @@ describe('child key warnings', () => {
 
   it('handles numeric key 0 correctly (not treated as null)', () => {
     const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const next = h('div', null,
-      h('span', { key: 0 }),
-      h('span', { key: 1 }),
-    );
+    const next = h('div', null, h('span', { key: 0 }), h('span', { key: 1 }));
     diff(h('div', null), next);
     expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();

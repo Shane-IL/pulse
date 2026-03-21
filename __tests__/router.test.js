@@ -1,11 +1,11 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { h, render, flushSync, createRouter } from '../src/index';
 
 // ── Helpers ────────────────────────────────────────────────
 
 function setup(routes, initialPath = '/') {
   window.history.pushState(null, '', initialPath);
-  const router = createRouter({ routes: routes.map(p => ({ path: p })) });
+  const router = createRouter({ routes: routes.map((p) => ({ path: p })) });
   const container = document.createElement('div');
   return { router, container };
 }
@@ -77,7 +77,10 @@ describe('route matching', () => {
   });
 
   it('first match wins', () => {
-    const { router } = setup(['/users/:id', '/users/special'], '/users/special');
+    const { router } = setup(
+      ['/users/:id', '/users/special'],
+      '/users/special',
+    );
     // :id matches first
     expect(router.store.getState().matched).toBe('/users/:id');
     expect(router.store.getState().params).toEqual({ id: 'special' });
@@ -226,7 +229,9 @@ describe('Route component', () => {
   it('renders component when path matches', () => {
     const { router, container } = setup(['/', '/about'], '/about');
     const { Route } = router;
-    function About() { return h('h1', null, 'About'); }
+    function About() {
+      return h('h1', null, 'About');
+    }
     render(h(Route, { path: '/about', component: About }), container);
     expect(container.querySelector('h1').textContent).toBe('About');
     router.destroy();
@@ -235,7 +240,9 @@ describe('Route component', () => {
   it('renders nothing when path does not match', () => {
     const { router, container } = setup(['/about'], '/');
     const { Route } = router;
-    function About() { return h('h1', null, 'About'); }
+    function About() {
+      return h('h1', null, 'About');
+    }
     render(h(Route, { path: '/about', component: About }), container);
     expect(container.querySelector('h1')).toBeNull();
     router.destroy();
@@ -244,7 +251,9 @@ describe('Route component', () => {
   it('passes params to rendered component', () => {
     const { router, container } = setup(['/users/:id'], '/users/42');
     const { Route } = router;
-    function User({ params }) { return h('span', null, params.id); }
+    function User({ params }) {
+      return h('span', null, params.id);
+    }
     render(h(Route, { path: '/users/:id', component: User }), container);
     expect(container.querySelector('span').textContent).toBe('42');
     router.destroy();
@@ -253,11 +262,17 @@ describe('Route component', () => {
   it('switches component on navigation', () => {
     const { router, container } = setup(['/a', '/b'], '/a');
     const { Route } = router;
-    function PageA() { return h('div', { className: 'a' }, 'A'); }
-    function PageB() { return h('div', { className: 'b' }, 'B'); }
+    function PageA() {
+      return h('div', { className: 'a' }, 'A');
+    }
+    function PageB() {
+      return h('div', { className: 'b' }, 'B');
+    }
 
     function App() {
-      return h('div', null,
+      return h(
+        'div',
+        null,
         h(Route, { path: '/a', component: PageA }),
         h(Route, { path: '/b', component: PageB }),
       );
@@ -277,11 +292,17 @@ describe('Route component', () => {
   it('wildcard route renders when nothing else matches', () => {
     const { router, container } = setup(['/home', '*'], '/unknown');
     const { Route } = router;
-    function Home() { return h('div', { className: 'home' }, 'Home'); }
-    function NotFound() { return h('div', { className: 'nf' }, '404'); }
+    function Home() {
+      return h('div', { className: 'home' }, 'Home');
+    }
+    function NotFound() {
+      return h('div', { className: 'nf' }, '404');
+    }
 
     function App() {
-      return h('div', null,
+      return h(
+        'div',
+        null,
         h(Route, { path: '/home', component: Home }),
         h(Route, { path: '*', component: NotFound }),
       );
@@ -300,9 +321,13 @@ describe('Route component', () => {
     );
     const { Route } = router;
 
-    function Settings() { return h('span', { className: 'settings' }, 'Settings'); }
+    function Settings() {
+      return h('span', { className: 'settings' }, 'Settings');
+    }
     function Dashboard() {
-      return h('div', { className: 'dash' },
+      return h(
+        'div',
+        { className: 'dash' },
         h(Route, { path: '/dashboard/settings', component: Settings }),
       );
     }
@@ -349,7 +374,11 @@ describe('Link component', () => {
     render(h(Link, { to: '/about' }, 'About'), container);
     const a = container.querySelector('a');
 
-    const ctrlClick = new MouseEvent('click', { bubbles: true, button: 0, ctrlKey: true });
+    const ctrlClick = new MouseEvent('click', {
+      bubbles: true,
+      button: 0,
+      ctrlKey: true,
+    });
     const pdSpy = vi.spyOn(ctrlClick, 'preventDefault');
     a.dispatchEvent(ctrlClick);
     expect(pdSpy).not.toHaveBeenCalled();
@@ -361,7 +390,10 @@ describe('Link component', () => {
   it('passes through additional props', () => {
     const { router, container } = setup([], '/');
     const { Link } = router;
-    render(h(Link, { to: '/x', className: 'nav-link', id: 'mylink' }, 'X'), container);
+    render(
+      h(Link, { to: '/x', className: 'nav-link', id: 'mylink' }, 'X'),
+      container,
+    );
     const a = container.querySelector('a');
     expect(a.className).toBe('nav-link');
     expect(a.id).toBe('mylink');
@@ -371,10 +403,7 @@ describe('Link component', () => {
   it('renders children as link content', () => {
     const { router, container } = setup([], '/');
     const { Link } = router;
-    render(
-      h(Link, { to: '/' }, h('span', null, 'Home'), ' Page'),
-      container,
-    );
+    render(h(Link, { to: '/' }, h('span', null, 'Home'), ' Page'), container);
     const a = container.querySelector('a');
     expect(a.querySelector('span').textContent).toBe('Home');
     router.destroy();
