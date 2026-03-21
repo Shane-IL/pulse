@@ -32,6 +32,17 @@ const todoStore = createStore({
 });
 ```
 
+### Store Config
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `state` | yes | Initial state object |
+| `actions` | yes | Named action functions: `(state, payload?) => newState` |
+| `name` | no | Display name (used by devtools and logger middleware) |
+| `middleware` | no | Array of middleware functions (see [Middleware](./middleware.md)) |
+
+When no middleware is provided, dispatch uses a zero-overhead fast path — no wrapper objects, no function chains.
+
 ## Reading State
 
 ```js
@@ -178,3 +189,5 @@ loadTodos();
 ```
 
 This is a core design difference from hooks-based frameworks: **side effects live outside the component tree**, making them easier to test, share, and reason about.
+
+For a more structured approach to async operations, see [`createAsyncAction`](./middleware.md#async-actions) — a thin wrapper that dispatches loading/success/error actions around an async function.
