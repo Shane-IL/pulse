@@ -3,6 +3,27 @@ import type { VNode, Bindings, Lifecycle, ComponentFunction } from './vnode';
 
 export const CONNECTED: unique symbol = Symbol('PULSE_CONNECTED');
 
+// Pluggable devtools hooks — stored on globalThis so separate bundles
+// (pulse core vs devtools) share the same hook storage.
+interface ComponentHooks {
+  onMount: ((instance: any) => void) | null;
+  onUnmount: ((instance: any) => void) | null;
+}
+
+const G = globalThis as any;
+if (!G.__PULSE_HOOKS__) {
+  G.__PULSE_HOOKS__ = { onMount: null, onUnmount: null };
+}
+const hooks: ComponentHooks = G.__PULSE_HOOKS__;
+
+export function __setComponentHooks(
+  onMount: ((instance: ComponentInstance) => void) | null,
+  onUnmount: ((instance: ComponentInstance) => void) | null,
+): void {
+  hooks.onMount = onMount;
+  hooks.onUnmount = onUnmount;
+}
+
 export function connect(
   bindings: Bindings | null | undefined,
   lifecycle?: Lifecycle,
@@ -81,6 +102,9 @@ export class ComponentInstance {
         this._mountCleanup = cleanup;
       }
     }
+
+    // Devtools hook
+    if (hooks.onMount) hooks.onMount(this);
   }
 
   _onStoreChange(): void {
@@ -110,6 +134,9 @@ export class ComponentInstance {
   }
 
   unmount(): void {
+    // Devtools hook
+    if (hooks.onUnmount) hooks.onUnmount(this);
+
     // Lifecycle: cleanup from onMount, then onDestroy
     if (this._mountCleanup) {
       this._mountCleanup();

@@ -1,6 +1,10 @@
 import { h, render, connect, createRouter } from '@shane_il/pulse';
+import { openPanel } from '@shane_il/pulse/devtools';
 import { App } from './components/App';
 import { createTodoList } from './components/TodoList';
+
+// Open devtools panel (also available via Ctrl+Shift+P)
+openPanel();
 
 // Create router
 const router = createRouter({

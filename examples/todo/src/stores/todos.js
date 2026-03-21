@@ -1,6 +1,8 @@
 import { createStore } from '@shane_il/pulse';
+import { devtools, instrumentStore } from '@shane_il/pulse/devtools';
 
-export const todoStore = createStore({
+const { store: todoStore } = instrumentStore(devtools, {
+  name: 'todos',
   state: {
     items: [],
     nextId: 1,
@@ -23,3 +25,5 @@ export const todoStore = createStore({
     }),
   },
 });
+
+export { todoStore };

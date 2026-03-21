@@ -1,9 +1,10 @@
 import { defineConfig } from 'vite';
+import { resolve } from 'path';
 
 export default defineConfig({
   build: {
     lib: {
-      entry: './src/index.ts',
+      entry: resolve(__dirname, 'src/index.ts'),
       name: 'Pulse',
       formats: ['es', 'cjs'],
       fileName: (format) => format === 'es' ? 'pulse.js' : 'pulse.cjs',
