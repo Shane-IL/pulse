@@ -212,7 +212,12 @@ When a connected component is conditionally removed, its subscriptions are clean
 // Boolean attributes
 <input disabled={true} />
 <input checked={isChecked} />
+
+// Controlled inputs — value, checked, selected are set as DOM properties
+<input value={currentValue} onInput={(e) => store.dispatch('setValue', e.target.value)} />
 ```
+
+Properties like `value`, `checked`, and `selected` are set directly on the DOM element (not via `setAttribute`), so controlled inputs work correctly.
 
 ## Raw HTML
 

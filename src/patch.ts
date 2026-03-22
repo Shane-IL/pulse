@@ -91,6 +91,13 @@ function setProp(
     }
   } else if (key === 'ref') {
     if (typeof value === 'function') value(el);
+  } else if (key in el && !(el instanceof SVGElement)) {
+    // DOM property — set directly for properties like value, checked, selected
+    try {
+      (el as any)[key] = value ?? '';
+    } catch {
+      el.setAttribute(key, value);
+    }
   } else if (value === true) {
     el.setAttribute(key, '');
   } else if (value === false || value == null) {
@@ -110,6 +117,12 @@ function removeProp(el: Element, key: string, oldValue: any): void {
       el.removeAttribute('class');
     } else {
       (el as HTMLElement).className = '';
+    }
+  } else if (key in el && !(el instanceof SVGElement)) {
+    try {
+      (el as any)[key] = '';
+    } catch {
+      el.removeAttribute(key);
     }
   } else {
     el.removeAttribute(key);

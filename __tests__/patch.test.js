@@ -107,6 +107,62 @@ describe('applyProps', () => {
   });
 });
 
+describe('DOM property handling', () => {
+  it('sets input value as DOM property', () => {
+    const el = document.createElement('input');
+    applyProps(el, {}, { value: 'hello' });
+    expect(el.value).toBe('hello');
+  });
+
+  it('updates input value correctly', () => {
+    const el = document.createElement('input');
+    applyProps(el, {}, { value: 'old' });
+    applyProps(el, { value: 'old' }, { value: 'new' });
+    expect(el.value).toBe('new');
+  });
+
+  it('sets checked as DOM property', () => {
+    const el = document.createElement('input');
+    el.type = 'checkbox';
+    applyProps(el, {}, { checked: true });
+    expect(el.checked).toBe(true);
+  });
+
+  it('unchecks via DOM property', () => {
+    const el = document.createElement('input');
+    el.type = 'checkbox';
+    applyProps(el, {}, { checked: true });
+    applyProps(el, { checked: true }, { checked: false });
+    expect(el.checked).toBe(false);
+  });
+
+  it('sets disabled as DOM property', () => {
+    const el = document.createElement('input');
+    applyProps(el, {}, { disabled: true });
+    expect(el.disabled).toBe(true);
+  });
+
+  it('clears value on prop removal', () => {
+    const el = document.createElement('input');
+    applyProps(el, {}, { value: 'hello' });
+    applyProps(el, { value: 'hello' }, {});
+    expect(el.value).toBe('');
+  });
+
+  it('data attributes still use setAttribute', () => {
+    const el = document.createElement('div');
+    applyProps(el, {}, { 'data-id': '123' });
+    expect(el.getAttribute('data-id')).toBe('123');
+  });
+
+  it('SVG attributes bypass DOM property path', () => {
+    const rect = document.createElementNS(SVG_NS, 'rect');
+    applyProps(rect, {}, { width: '100', height: '50' });
+    expect(rect.getAttribute('width')).toBe('100');
+    expect(rect.getAttribute('height')).toBe('50');
+  });
+});
+
 describe('applyPatches', () => {
   it('CREATE appends child', () => {
     const container = document.createElement('div');
