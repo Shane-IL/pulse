@@ -71,7 +71,7 @@ function setProp(
     const eventName = key.slice(2).toLowerCase();
     if (oldValue) el.removeEventListener(eventName, oldValue);
     if (value) el.addEventListener(eventName, value);
-  } else if (key === 'className') {
+  } else if (key === 'className' || key === 'class') {
     // SVG className is an SVGAnimatedString — use setAttribute instead
     if (el instanceof SVGElement) {
       el.setAttribute('class', value || '');
@@ -105,7 +105,7 @@ function removeProp(el: Element, key: string, oldValue: any): void {
     el.removeEventListener(key.slice(2).toLowerCase(), oldValue);
   } else if (key === 'dangerouslySetInnerHTML') {
     el.innerHTML = '';
-  } else if (key === 'className') {
+  } else if (key === 'className' || key === 'class') {
     if (el instanceof SVGElement) {
       el.removeAttribute('class');
     } else {

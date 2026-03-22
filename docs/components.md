@@ -202,8 +202,9 @@ When a connected component is conditionally removed, its subscriptions are clean
 ## Style and Class
 
 ```jsx
-// className (not class)
+// Both className and class work
 <div className="container active" />
+<div class="container active" />
 
 // Inline styles as objects
 <div style={{ color: 'red', fontSize: '14px' }} />

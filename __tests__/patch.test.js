@@ -86,6 +86,25 @@ describe('applyProps', () => {
     applyProps(el, {}, { 'data-id': '123' });
     expect(el.getAttribute('data-id')).toBe('123');
   });
+
+  it('supports class as alias for className', () => {
+    const el = document.createElement('div');
+    applyProps(el, {}, { class: 'bar' });
+    expect(el.className).toBe('bar');
+  });
+
+  it('removes class alias', () => {
+    const el = document.createElement('div');
+    applyProps(el, {}, { class: 'bar' });
+    applyProps(el, { class: 'bar' }, {});
+    expect(el.className).toBe('');
+  });
+
+  it('class alias works on SVG elements', () => {
+    const svg = document.createElementNS(SVG_NS, 'g');
+    applyProps(svg, {}, { class: 'group' });
+    expect(svg.getAttribute('class')).toBe('group');
+  });
 });
 
 describe('applyPatches', () => {
