@@ -69,6 +69,7 @@ render(vnode, container)
     │                      Create ComponentInstances for connected components
     ▼
   createDOMNode(vnode)   ← Build real DOM from expanded VNode tree (first mount only)
+    │                      SVG namespace auto-detected and propagated to children
     │                      Stamp _dom reference on each VNode
     ▼
   container.appendChild  ← Insert into document
@@ -298,7 +299,7 @@ These warnings are dead-code eliminated by Vite in production builds.
 | `src/middleware.ts`    | ~90 LOC       | Middleware types, `logger`, `actionHistory`, `createAsyncAction`          |
 | `src/scheduler.ts`     | ~20 LOC       | Microtask-based batched update queue                                      |
 | `src/diff.ts`          | ~240 LOC      | VDOM tree diffing with two-pointer children reconciliation, key warnings  |
-| `src/patch.ts`         | ~150 LOC      | DOM creation and mutation                                                 |
+| `src/patch.ts`         | ~170 LOC      | DOM creation and mutation, SVG namespace support                          |
 | `src/connect.ts`       | ~160 LOC      | `connect()` HOC, `ComponentInstance`, `shallowEqual`, devtools hooks      |
 | `src/render.ts`        | ~205 LOC      | `render()`, `expand()`, `reRenderInstance()`, error boundaries            |
 | `src/router.ts`        | ~270 LOC      | `createRouter()`, path matching, Route/Link/Redirect components           |

@@ -3,7 +3,9 @@ import { PATCH } from './diff';
 import type { VNode } from './vnode';
 import type { Patch } from './diff';
 
-export function createDOMNode(vnode: VNode): Node {
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+export function createDOMNode(vnode: VNode, namespace?: string): Node {
   if (vnode.type === TEXT_NODE) {
     const textNode = document.createTextNode(vnode.props.nodeValue);
     vnode._dom = textNode;
@@ -13,18 +15,27 @@ export function createDOMNode(vnode: VNode): Node {
   if (vnode.type === FRAGMENT) {
     const frag = document.createDocumentFragment();
     for (const child of vnode.children) {
-      frag.appendChild(createDOMNode(child));
+      frag.appendChild(createDOMNode(child, namespace));
     }
     // For fragments, store ref to first child for positioning
     vnode._dom = frag;
     return frag;
   }
 
-  const el = document.createElement(vnode.type as string);
+  // SVG namespace: 'svg' enters, 'foreignObject' exits back to HTML
+  if (vnode.type === 'svg') {
+    namespace = SVG_NS;
+  } else if (vnode.type === 'foreignObject') {
+    namespace = undefined;
+  }
+
+  const el = namespace
+    ? document.createElementNS(namespace, vnode.type as string)
+    : document.createElement(vnode.type as string);
   applyProps(el, {}, vnode.props);
 
   for (const child of vnode.children) {
-    el.appendChild(createDOMNode(child));
+    el.appendChild(createDOMNode(child, namespace));
   }
 
   vnode._dom = el;
@@ -32,7 +43,7 @@ export function createDOMNode(vnode: VNode): Node {
 }
 
 export function applyProps(
-  el: HTMLElement,
+  el: Element,
   oldProps: Record<string, any>,
   newProps: Record<string, any>,
 ): void {
@@ -51,7 +62,7 @@ export function applyProps(
 }
 
 function setProp(
-  el: HTMLElement,
+  el: Element,
   key: string,
   value: any,
   oldValue: any,
@@ -61,14 +72,19 @@ function setProp(
     if (oldValue) el.removeEventListener(eventName, oldValue);
     if (value) el.addEventListener(eventName, value);
   } else if (key === 'className') {
-    el.className = value || '';
+    // SVG className is an SVGAnimatedString — use setAttribute instead
+    if (el instanceof SVGElement) {
+      el.setAttribute('class', value || '');
+    } else {
+      (el as HTMLElement).className = value || '';
+    }
   } else if (key === 'style' && typeof value === 'object') {
     if (typeof oldValue === 'object' && oldValue) {
       for (const prop in oldValue) {
-        if (!(prop in value)) (el.style as any)[prop] = '';
+        if (!(prop in value)) ((el as HTMLElement).style as any)[prop] = '';
       }
     }
-    Object.assign(el.style, value);
+    Object.assign((el as HTMLElement).style, value);
   } else if (key === 'ref') {
     if (typeof value === 'function') value(el);
   } else if (value === true) {
@@ -80,21 +96,29 @@ function setProp(
   }
 }
 
-function removeProp(el: HTMLElement, key: string, oldValue: any): void {
+function removeProp(el: Element, key: string, oldValue: any): void {
   if (key.startsWith('on')) {
     el.removeEventListener(key.slice(2).toLowerCase(), oldValue);
   } else if (key === 'className') {
-    el.className = '';
+    if (el instanceof SVGElement) {
+      el.removeAttribute('class');
+    } else {
+      (el as HTMLElement).className = '';
+    }
   } else {
     el.removeAttribute(key);
   }
+}
+
+function inferNamespace(node: Node): string | undefined {
+  return node instanceof SVGElement ? SVG_NS : undefined;
 }
 
 export function applyPatches(parentDom: Node, patches: Patch[]): void {
   for (const patch of patches) {
     switch (patch.type) {
       case PATCH.CREATE: {
-        const dom = createDOMNode(patch.newVNode);
+        const dom = createDOMNode(patch.newVNode, inferNamespace(parentDom));
         if (patch.anchor?._dom) {
           parentDom.insertBefore(dom, patch.anchor._dom);
         } else {
@@ -112,16 +136,20 @@ export function applyPatches(parentDom: Node, patches: Patch[]): void {
       }
 
       case PATCH.REPLACE: {
-        const newDom = createDOMNode(patch.newVNode);
         const oldDom = patch.oldVNode._dom;
-        if (oldDom?.parentNode) {
-          oldDom.parentNode.replaceChild(newDom, oldDom);
+        const parent = oldDom?.parentNode;
+        const newDom = createDOMNode(
+          patch.newVNode,
+          parent ? inferNamespace(parent) : undefined,
+        );
+        if (parent) {
+          parent.replaceChild(newDom, oldDom!);
         }
         break;
       }
 
       case PATCH.UPDATE: {
-        const dom = patch.target._dom as HTMLElement;
+        const dom = patch.target._dom as Element;
         const { set, remove } = patch.propPatches;
         for (const key of remove) {
           removeProp(dom, key, patch.target.props[key]);
