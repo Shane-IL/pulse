@@ -213,6 +213,18 @@ When a connected component is conditionally removed, its subscriptions are clean
 <input checked={isChecked} />
 ```
 
+## Raw HTML
+
+When you need to inject pre-rendered HTML (markdown output, CMS content, syntax-highlighted code), use `dangerouslySetInnerHTML`:
+
+```jsx
+function Article({ htmlContent }) {
+  return <div dangerouslySetInnerHTML={{ __html: htmlContent }} />;
+}
+```
+
+The prop takes an object with an `__html` key. As the name implies, this bypasses Pulse's normal rendering — you are responsible for sanitizing the HTML to prevent XSS.
+
 ## Connected vs. Plain — When to Use Which
 
 |                    | Plain Component            | Connected Component                              |

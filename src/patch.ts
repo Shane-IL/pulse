@@ -85,6 +85,10 @@ function setProp(
       }
     }
     Object.assign((el as HTMLElement).style, value);
+  } else if (key === 'dangerouslySetInnerHTML') {
+    if (value && typeof value.__html === 'string') {
+      el.innerHTML = value.__html;
+    }
   } else if (key === 'ref') {
     if (typeof value === 'function') value(el);
   } else if (value === true) {
@@ -99,6 +103,8 @@ function setProp(
 function removeProp(el: Element, key: string, oldValue: any): void {
   if (key.startsWith('on')) {
     el.removeEventListener(key.slice(2).toLowerCase(), oldValue);
+  } else if (key === 'dangerouslySetInnerHTML') {
+    el.innerHTML = '';
   } else if (key === 'className') {
     if (el instanceof SVGElement) {
       el.removeAttribute('class');

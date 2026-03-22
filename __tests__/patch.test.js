@@ -126,6 +126,45 @@ describe('applyPatches', () => {
   });
 });
 
+describe('dangerouslySetInnerHTML', () => {
+  it('sets innerHTML from __html property', () => {
+    const el = document.createElement('div');
+    applyProps(el, {}, { dangerouslySetInnerHTML: { __html: '<b>bold</b>' } });
+    expect(el.innerHTML).toBe('<b>bold</b>');
+  });
+
+  it('updates innerHTML when value changes', () => {
+    const el = document.createElement('div');
+    applyProps(el, {}, { dangerouslySetInnerHTML: { __html: '<b>old</b>' } });
+    applyProps(
+      el,
+      { dangerouslySetInnerHTML: { __html: '<b>old</b>' } },
+      { dangerouslySetInnerHTML: { __html: '<i>new</i>' } },
+    );
+    expect(el.innerHTML).toBe('<i>new</i>');
+  });
+
+  it('clears innerHTML when prop is removed', () => {
+    const el = document.createElement('div');
+    applyProps(el, {}, { dangerouslySetInnerHTML: { __html: '<b>hi</b>' } });
+    applyProps(el, { dangerouslySetInnerHTML: { __html: '<b>hi</b>' } }, {});
+    expect(el.innerHTML).toBe('');
+  });
+
+  it('ignores if __html is not a string', () => {
+    const el = document.createElement('div');
+    el.innerHTML = 'original';
+    applyProps(el, {}, { dangerouslySetInnerHTML: { __html: null } });
+    expect(el.innerHTML).toBe('original');
+  });
+
+  it('works with createDOMNode', () => {
+    const vnode = h('div', { dangerouslySetInnerHTML: { __html: '<em>hello</em>' } });
+    const dom = createDOMNode(vnode);
+    expect(dom.innerHTML).toBe('<em>hello</em>');
+  });
+});
+
 describe('SVG support', () => {
   it('creates SVG element with correct namespace', () => {
     const vnode = h('svg', { viewBox: '0 0 100 100' });
