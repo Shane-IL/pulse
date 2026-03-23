@@ -71,7 +71,11 @@ function expand(vnode: VNode | null, parentDom: Node): VNode | null {
 
       try {
         const instance = new ComponentInstance(vnode.type, vnode.props);
-        const childVNode = vnode.type(vnode.props);
+        const localProps = instance.getLocalProps();
+        const callProps = localProps
+          ? { ...vnode.props, ...localProps }
+          : vnode.props;
+        const childVNode = vnode.type(callProps);
         const expanded = expand(childVNode, parentDom);
 
         // Use placeholder for null returns so instance stays in tree (subscribes)
@@ -130,7 +134,11 @@ function reRenderInstance(instance: ComponentInstance, parentDom: Node): void {
   const lifecycle: Lifecycle | undefined = (connectedFn as any)._lifecycle;
 
   try {
-    const newVNode = connectedFn(instance.props);
+    const localProps = instance.getLocalProps();
+    const callProps = localProps
+      ? { ...instance.props, ...localProps }
+      : instance.props;
+    const newVNode = connectedFn(callProps);
     const rawExpanded = expand(newVNode, parentDom);
 
     // Use placeholder for null returns so instance stays in tree

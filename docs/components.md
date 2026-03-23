@@ -231,6 +231,56 @@ function Article({ htmlContent }) {
 
 The prop takes an object with an `__html` key. As the name implies, this bypasses Pulse's normal rendering — you are responsible for sanitizing the HTML to prevent XSS.
 
+## Local Stores
+
+For component-scoped state that doesn't belong in a global store, use a **local store**. Define it in the lifecycle config — state and actions are merged directly into props.
+
+```jsx
+function Accordion({ title, children, expanded, toggleExpanded }) {
+  return (
+    <div className="accordion">
+      <button onClick={() => toggleExpanded()}>{title}</button>
+      {expanded && <div className="body">{children}</div>}
+    </div>
+  );
+}
+
+const ConnectedAccordion = connect(null, {
+  store: {
+    state: { expanded: false },
+    actions: {
+      toggleExpanded: (s) => ({ ...s, expanded: !s.expanded }),
+    },
+  },
+})(Accordion);
+```
+
+Each instance gets its own copy of the state — two `<ConnectedAccordion />` on the same page are fully independent.
+
+### Combining with Global Bindings
+
+Local stores work alongside global bindings. If a key collides, the local value wins and a dev warning is logged:
+
+```jsx
+const ConnectedPanel = connect(
+  { theme: settingsStore.select((s) => s.theme) },
+  {
+    store: {
+      state: { collapsed: false },
+      actions: { toggle: (s) => ({ ...s, collapsed: !s.collapsed }) },
+    },
+  },
+)(Panel);
+// Panel receives: theme (global), collapsed (local), toggle (local action)
+```
+
+### When to Use Local vs. Global Stores
+
+- **Local store**: UI-only state scoped to one component — toggles, form input, accordion open/closed, dropdown visibility.
+- **Global store**: Shared state consumed by multiple components — user auth, todo items, app settings.
+
+Local stores have no middleware and are strictly internal — other components cannot read or dispatch to them.
+
 ## Connected vs. Plain — When to Use Which
 
 |                    | Plain Component            | Connected Component                              |

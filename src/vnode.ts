@@ -25,7 +25,13 @@ export interface Bindings {
   [propName: string]: SelectorBinding<any, any>;
 }
 
+export interface LocalStoreConfig<S = Record<string, any>> {
+  state: S;
+  actions: { [name: string]: (state: S, payload?: any) => S };
+}
+
 export interface Lifecycle {
+  store?: LocalStoreConfig;
   onMount?: (ctx: {
     dom: Node | null | undefined;
     props: Record<string, any>;

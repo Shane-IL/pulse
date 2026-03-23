@@ -7,7 +7,13 @@ export { createRouter } from './router';
 export { logger, actionHistory, createAsyncAction } from './middleware';
 
 // Re-export types for consumers
-export type { VNode, ComponentFunction, Bindings, Lifecycle } from './vnode';
+export type {
+  VNode,
+  ComponentFunction,
+  Bindings,
+  Lifecycle,
+  LocalStoreConfig,
+} from './vnode';
 export type {
   Store,
   StoreConfig,

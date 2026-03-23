@@ -7,7 +7,7 @@ A render-driven UI framework with virtual DOM and immutable stores. Like React, 
 ## Why Pulse?
 
 - **No hooks.** All state lives in external stores. Components are `(props) => VNode`.
-- **Stores are first-class.** Create, import, and share stores anywhere. They're framework-agnostic.
+- **Stores are first-class.** Create, import, and share stores anywhere. They're framework-agnostic. Per-component local stores for UI-only state.
 - **Render-driven.** Describe what the UI looks like for a given state. Pulse handles the rest.
 - **Built-in routing.** Store-based client-side router — routes are just state.
 - **Middleware.** Pluggable middleware for logging, action history, and custom logic.
@@ -94,7 +94,7 @@ Store dispatch → Notify subscribers → Schedule re-render → Expand componen
 
 ```bash
 npm install
-npm test          # 231 tests (vitest)
+npm test          # 242 tests (vitest)
 npm run typecheck # tsc --noEmit
 npm run lint      # eslint
 npm run build     # vite lib mode → dist/

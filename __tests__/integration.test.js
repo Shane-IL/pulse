@@ -619,6 +619,123 @@ describe('error boundaries', () => {
     );
   });
 
+  it('local store renders and updates via actions', () => {
+    function Toggle({ open, toggle }) {
+      return h(
+        'div',
+        null,
+        h('span', { className: 'status' }, open ? 'open' : 'closed'),
+        h('button', { onClick: () => toggle() }, 'toggle'),
+      );
+    }
+
+    const Connected = connect(null, {
+      store: {
+        state: { open: false },
+        actions: { toggle: (s) => ({ ...s, open: !s.open }) },
+      },
+    })(Toggle);
+
+    const container = document.createElement('div');
+    render(h(Connected, null), container);
+
+    expect(container.querySelector('.status').textContent).toBe('closed');
+
+    // Simulate click
+    container.querySelector('button').click();
+    flushSync();
+
+    expect(container.querySelector('.status').textContent).toBe('open');
+  });
+
+  it('local store works alongside global bindings', () => {
+    const globalStore = createStore({
+      state: { theme: 'dark' },
+      actions: { setTheme: (s, theme) => ({ ...s, theme }) },
+    });
+
+    function Panel({ theme, expanded, toggleExpanded }) {
+      return h(
+        'div',
+        { className: theme },
+        h(
+          'span',
+          { className: 'state' },
+          expanded ? 'expanded' : 'collapsed',
+        ),
+        h('button', { onClick: () => toggleExpanded() }, 'toggle'),
+      );
+    }
+
+    const Connected = connect(
+      { theme: globalStore.select((s) => s.theme) },
+      {
+        store: {
+          state: { expanded: false },
+          actions: {
+            toggleExpanded: (s) => ({ ...s, expanded: !s.expanded }),
+          },
+        },
+      },
+    )(Panel);
+
+    const container = document.createElement('div');
+    render(h(Connected, null), container);
+
+    expect(container.querySelector('.dark')).not.toBeNull();
+    expect(container.querySelector('.state').textContent).toBe('collapsed');
+
+    // Toggle local state
+    container.querySelector('button').click();
+    flushSync();
+    expect(container.querySelector('.state').textContent).toBe('expanded');
+
+    // Update global store
+    globalStore.dispatch('setTheme', 'light');
+    flushSync();
+    expect(container.querySelector('.light')).not.toBeNull();
+    // Local state preserved across global re-render
+    expect(container.querySelector('.state').textContent).toBe('expanded');
+  });
+
+  it('each local store instance has independent state', () => {
+    function Counter({ count, increment }) {
+      return h(
+        'div',
+        { className: 'counter' },
+        h('span', { className: 'val' }, String(count)),
+        h('button', { onClick: () => increment() }, '+'),
+      );
+    }
+
+    const Connected = connect(null, {
+      store: {
+        state: { count: 0 },
+        actions: { increment: (s) => ({ ...s, count: s.count + 1 }) },
+      },
+    })(Counter);
+
+    function App() {
+      return h('div', null, h(Connected, { key: 'a' }), h(Connected, { key: 'b' }));
+    }
+
+    const container = document.createElement('div');
+    render(h(App, null), container);
+
+    const vals = container.querySelectorAll('.val');
+    const buttons = container.querySelectorAll('button');
+    expect(vals[0].textContent).toBe('0');
+    expect(vals[1].textContent).toBe('0');
+
+    // Click first counter only
+    buttons[0].click();
+    flushSync();
+
+    const valsAfter = container.querySelectorAll('.val');
+    expect(valsAfter[0].textContent).toBe('1');
+    expect(valsAfter[1].textContent).toBe('0'); // independent
+  });
+
   it('does not fire onUpdate when error is caught during re-render', () => {
     const onUpdate = vi.fn();
     let shouldThrow = false;

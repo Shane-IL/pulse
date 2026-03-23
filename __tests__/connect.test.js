@@ -7,6 +7,7 @@ import {
 } from '../src/connect';
 import { createStore } from '../src/store';
 import { flushSync } from '../src/scheduler';
+import { h, render } from '../src/index';
 
 describe('connect', () => {
   it('returns a function', () => {
@@ -255,5 +256,182 @@ describe('shallowEqual', () => {
 
   it('handles NaN', () => {
     expect(shallowEqual(NaN, NaN)).toBe(true);
+  });
+});
+
+describe('local stores', () => {
+  it('merges local state into component props', () => {
+    const inner = vi.fn(() => h('div', null));
+    const Connected = connect(
+      {},
+      {
+        store: {
+          state: { count: 0 },
+          actions: { increment: (s) => ({ ...s, count: s.count + 1 }) },
+        },
+      },
+    )(inner);
+
+    const container = document.createElement('div');
+    render(h(Connected, null), container);
+
+    expect(inner).toHaveBeenCalledTimes(1);
+    const receivedProps = inner.mock.calls[0][0];
+    expect(receivedProps.count).toBe(0);
+    expect(typeof receivedProps.increment).toBe('function');
+  });
+
+  it('local state overrides global bindings', () => {
+    const store = createStore({ state: { count: 99 }, actions: {} });
+    const inner = vi.fn(() => h('div', null));
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const Connected = connect(
+      { count: store.select((s) => s.count) },
+      {
+        store: {
+          state: { count: 0 },
+          actions: {},
+        },
+      },
+    )(inner);
+
+    const container = document.createElement('div');
+    render(h(Connected, null), container);
+
+    const receivedProps = inner.mock.calls[0][0];
+    expect(receivedProps.count).toBe(0); // local wins
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('shadows global binding'),
+    );
+    warnSpy.mockRestore();
+  });
+
+  it('warns when action name shadows global binding', () => {
+    const store = createStore({ state: { x: 1 }, actions: {} });
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    connect(
+      { toggle: store.select((s) => s.x) },
+      {
+        store: {
+          state: {},
+          actions: { toggle: (s) => s },
+        },
+      },
+    )(function V() {
+      return null;
+    });
+    // Creating the connected component instantiation triggers warn check in ComponentInstance
+    const Connected = connect(
+      { toggle: store.select((s) => s.x) },
+      {
+        store: {
+          state: {},
+          actions: { toggle: (s) => s },
+        },
+      },
+    )(function V() {
+      return null;
+    });
+    // Need to instantiate to trigger warning
+    new ComponentInstance(Connected, {});
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('action "toggle" shadows global binding'),
+    );
+    warnSpy.mockRestore();
+  });
+
+  it('warns when action name shadows state key', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const Connected = connect(
+      {},
+      {
+        store: {
+          state: { count: 0 },
+          actions: { count: (s) => s },
+        },
+      },
+    )(function V() {
+      return null;
+    });
+    new ComponentInstance(Connected, {});
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('action "count" shadows state key'),
+    );
+    warnSpy.mockRestore();
+  });
+
+  it('dispatching local action updates state and triggers re-render', () => {
+    const store = createStore({ state: {}, actions: {} });
+    const Connected = connect(
+      {},
+      {
+        store: {
+          state: { count: 0 },
+          actions: { increment: (s) => ({ ...s, count: s.count + 1 }) },
+        },
+      },
+    )(function V() {
+      return null;
+    });
+    const instance = new ComponentInstance(Connected, {});
+    const renderCb = vi.fn();
+    instance.mount(document.createElement('div'), renderCb);
+
+    // Get the action dispatcher
+    const localProps = instance.getLocalProps();
+    localProps.increment();
+    flushSync();
+
+    expect(renderCb).toHaveBeenCalled();
+    // State should be updated
+    const updatedProps = instance.getLocalProps();
+    expect(updatedProps.count).toBe(1);
+  });
+
+  it('getLocalProps returns null when no local store', () => {
+    const Connected = connect({})(function V() {
+      return null;
+    });
+    const instance = new ComponentInstance(Connected, {});
+    expect(instance.getLocalProps()).toBeNull();
+  });
+
+  it('local store works with no global bindings', () => {
+    const inner = vi.fn(() => h('div', null));
+    const Connected = connect(null, {
+      store: {
+        state: { open: false },
+        actions: { toggle: (s) => ({ ...s, open: !s.open }) },
+      },
+    })(inner);
+
+    const container = document.createElement('div');
+    render(h(Connected, null), container);
+
+    const receivedProps = inner.mock.calls[0][0];
+    expect(receivedProps.open).toBe(false);
+    expect(typeof receivedProps.toggle).toBe('function');
+  });
+
+  it('noop action does not trigger re-render', () => {
+    const Connected = connect(
+      {},
+      {
+        store: {
+          state: { count: 0 },
+          actions: { noop: (s) => s }, // returns same reference
+        },
+      },
+    )(function V() {
+      return null;
+    });
+    const instance = new ComponentInstance(Connected, {});
+    const renderCb = vi.fn();
+    instance.mount(document.createElement('div'), renderCb);
+
+    const localProps = instance.getLocalProps();
+    localProps.noop();
+
+    expect(renderCb).not.toHaveBeenCalled();
   });
 });

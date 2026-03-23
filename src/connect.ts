@@ -1,5 +1,11 @@
 import { scheduleUpdate } from './scheduler';
-import type { VNode, Bindings, Lifecycle, ComponentFunction } from './vnode';
+import type {
+  VNode,
+  Bindings,
+  Lifecycle,
+  ComponentFunction,
+  LocalStoreConfig,
+} from './vnode';
 
 export const CONNECTED: unique symbol = Symbol('PULSE_CONNECTED');
 
@@ -59,6 +65,8 @@ export class ComponentInstance {
   parentDom: Node | null;
   _renderCallback: (() => void) | null;
   _mountCleanup: (() => void) | null;
+  _localState: Record<string, any> | null;
+  _localActions: Record<string, (state: any, payload?: any) => any> | null;
 
   constructor(connectedFn: ComponentFunction, props: Record<string, any>) {
     this.connectedFn = connectedFn;
@@ -69,6 +77,64 @@ export class ComponentInstance {
     this.parentDom = null;
     this._renderCallback = null;
     this._mountCleanup = null;
+    this._localState = null;
+    this._localActions = null;
+
+    const lifecycle: Lifecycle | undefined = (connectedFn as any)._lifecycle;
+    if (lifecycle?.store) {
+      this._initLocalStore(lifecycle.store);
+    }
+  }
+
+  _initLocalStore(config: LocalStoreConfig): void {
+    this._localState = { ...config.state };
+    this._localActions = config.actions;
+
+    // Warn on collisions between local store keys and global bindings
+    const bindings: Bindings = (this.connectedFn as any)._bindings;
+    const displayName =
+      (this.connectedFn as any).displayName || 'component';
+
+    const stateKeys = Object.keys(this._localState);
+    const actionKeys = Object.keys(this._localActions);
+
+    for (const key of stateKeys) {
+      if (key in bindings) {
+        console.warn(
+          `[pulse] Local store state "${key}" shadows global binding in ${displayName}. Local value will be used.`,
+        );
+      }
+    }
+    for (const key of actionKeys) {
+      if (key in bindings) {
+        console.warn(
+          `[pulse] Local store action "${key}" shadows global binding in ${displayName}. Local value will be used.`,
+        );
+      }
+      if (key in this._localState!) {
+        console.warn(
+          `[pulse] Local store action "${key}" shadows state key with same name in ${displayName}.`,
+        );
+      }
+    }
+  }
+
+  getLocalProps(): Record<string, any> | null {
+    if (!this._localState) return null;
+    const result: Record<string, any> = { ...this._localState };
+    for (const name in this._localActions) {
+      const actionFn = this._localActions[name];
+      result[name] = (payload?: any) => {
+        const nextState = actionFn(this._localState!, payload);
+        if (nextState !== this._localState) {
+          this._localState = nextState;
+          if (this._renderCallback) {
+            scheduleUpdate(this._renderCallback);
+          }
+        }
+      };
+    }
+    return result;
   }
 
   mount(parentDom: Node, renderCallback: () => void): void {
