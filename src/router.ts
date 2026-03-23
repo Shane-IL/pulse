@@ -223,15 +223,26 @@ export function createRouter(options: RouterOptions): Router {
     return children?.[0] ?? null;
   });
 
-  // ── Link Component (plain) ──
+  // ── Link Component (connected for activeClass support) ──
 
-  function Link(props: Record<string, any>): VNode {
-    const { to, children, ...rest } = props;
+  const Link = connect({
+    _currentPath: store.select((s: RouteState) => s.path),
+  })(function LinkInner(props: Record<string, any>): VNode {
+    const { to, children, activeClass, className, _currentPath, ...rest } =
+      props;
+
+    const isActive = normalizePath(to) === _currentPath;
+    let cls = className || '';
+    if (activeClass && isActive) {
+      cls = cls ? `${cls} ${activeClass}` : activeClass;
+    }
+
     return h(
       'a',
       {
         ...rest,
         href: to,
+        className: cls || undefined,
         onClick: (e: MouseEvent) => {
           if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
           e.preventDefault();
@@ -240,7 +251,7 @@ export function createRouter(options: RouterOptions): Router {
       },
       ...(children || []),
     );
-  }
+  });
 
   // ── Redirect Component (plain) ──
 

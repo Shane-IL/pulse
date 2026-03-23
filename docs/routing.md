@@ -28,7 +28,7 @@ interface Router {
   forward: () => void;
   destroy: () => void;
   Route: ComponentFunction; // connected component
-  Link: ComponentFunction; // plain component
+  Link: ComponentFunction; // connected component (supports activeClass)
   Redirect: ComponentFunction; // plain component
 }
 ```
@@ -110,13 +110,20 @@ function Nav() {
 - Renders a standard `<a>` with a valid `href` — right-click "open in new tab" works, as does accessibility and SEO.
 - Normal clicks call `e.preventDefault()` and use `navigate()` for SPA navigation.
 - Modifier clicks (Ctrl, Cmd, Shift, middle-click) pass through to the browser's default behavior.
-- Extra props are spread onto the `<a>` element:
+- Extra props are spread onto the `<a>` element.
+
+### Active Links
+
+Use `activeClass` to apply a CSS class when the link matches the current path:
 
 ```jsx
-<Link to="/about" className="nav-link" id="about-link">
-  About
-</Link>
+<Link to="/about" activeClass="active">About</Link>
+<Link to="/about" className="nav-link" activeClass="active">About</Link>
+// when on /about → class="nav-link active"
+// when elsewhere → class="nav-link"
 ```
+
+Link is a connected component that subscribes to the router store, so it re-renders automatically when the path changes.
 
 ## Redirect Component
 

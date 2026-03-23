@@ -70,11 +70,15 @@ function expand(vnode: VNode | null, parentDom: Node): VNode | null {
       const lifecycle: Lifecycle | undefined = (vnode.type as any)._lifecycle;
 
       try {
-        const instance = new ComponentInstance(vnode.type, vnode.props);
+        const propsWithChildren =
+          vnode.children?.length
+            ? { ...vnode.props, children: vnode.children }
+            : vnode.props;
+        const instance = new ComponentInstance(vnode.type, propsWithChildren);
         const localProps = instance.getLocalProps();
         const callProps = localProps
-          ? { ...vnode.props, ...localProps }
-          : vnode.props;
+          ? { ...propsWithChildren, ...localProps }
+          : propsWithChildren;
         const childVNode = vnode.type(callProps);
         const expanded = expand(childVNode, parentDom);
 

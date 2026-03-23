@@ -1,4 +1,6 @@
 import { scheduleUpdate } from './scheduler';
+import { shallowEqual } from './shallowEqual';
+import type { Store } from './store';
 import type {
   VNode,
   Bindings,
@@ -30,7 +32,7 @@ export function __setComponentHooks(
   hooks.onUnmount = onUnmount;
 }
 
-export function connect(
+function _connect(
   bindings: Bindings | null | undefined,
   lifecycle?: Lifecycle,
 ) {
@@ -55,6 +57,38 @@ export function connect(
     return ConnectedComponent;
   };
 }
+
+/**
+ * Shorthand: connect a component to a single store by picking top-level keys.
+ * connect.from(store, 'count', 'name')(Component)
+ */
+function connectFrom<S>(
+  store: Store<S>,
+  ...keys: (string | string[])[]
+) {
+  const flatKeys: string[] = Array.isArray(keys[0]) ? keys[0] : (keys as string[]);
+  const bindings: Bindings = {};
+  for (const key of flatKeys) {
+    bindings[key] = store.select((s: any) => s[key]);
+  }
+  return _connect(bindings);
+}
+
+/**
+ * Shorthand: connect a component with only a local store (no global bindings).
+ * connect.local({ state: {...}, actions: {...} }, lifecycle?)(Component)
+ */
+function connectLocal(
+  storeConfig: LocalStoreConfig,
+  lifecycle?: Omit<Lifecycle, 'store'>,
+) {
+  return _connect(null, { ...lifecycle, store: storeConfig });
+}
+
+export const connect = Object.assign(_connect, {
+  from: connectFrom,
+  local: connectLocal,
+});
 
 export class ComponentInstance {
   connectedFn: ComponentFunction;
@@ -222,22 +256,4 @@ export class ComponentInstance {
   }
 }
 
-export function shallowEqual(a: any, b: any): boolean {
-  if (Object.is(a, b)) return true;
-  if (typeof a !== 'object' || typeof b !== 'object') return false;
-  if (a === null || b === null) return false;
-
-  const keysA = Object.keys(a);
-  const keysB = Object.keys(b);
-  if (keysA.length !== keysB.length) return false;
-
-  for (const key of keysA) {
-    if (
-      !Object.prototype.hasOwnProperty.call(b, key) ||
-      !Object.is(a[key], b[key])
-    ) {
-      return false;
-    }
-  }
-  return true;
-}
+export { shallowEqual } from './shallowEqual';

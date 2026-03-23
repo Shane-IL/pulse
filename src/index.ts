@@ -19,6 +19,7 @@ export type {
   StoreConfig,
   StoreActions,
   SelectorBinding,
+  ActionDispatchers,
 } from './store';
 export type { RouteState, RouteConfig, RouterOptions, Router } from './router';
 export type {

@@ -408,6 +408,46 @@ describe('Link component', () => {
     expect(a.querySelector('span').textContent).toBe('Home');
     router.destroy();
   });
+
+  it('applies activeClass when path matches', () => {
+    const { router, container } = setup(['/', '/about'], '/about');
+    const { Link } = router;
+    render(
+      h(Link, { to: '/about', activeClass: 'active' }, 'About'),
+      container,
+    );
+    const a = container.querySelector('a');
+    expect(a.className).toBe('active');
+    router.destroy();
+  });
+
+  it('does not apply activeClass when path does not match', () => {
+    const { router, container } = setup(['/', '/about'], '/');
+    const { Link } = router;
+    render(
+      h(Link, { to: '/about', activeClass: 'active' }, 'About'),
+      container,
+    );
+    const a = container.querySelector('a');
+    expect(a.className).toBe('');
+    router.destroy();
+  });
+
+  it('combines className and activeClass', () => {
+    const { router, container } = setup(['/', '/about'], '/about');
+    const { Link } = router;
+    render(
+      h(
+        Link,
+        { to: '/about', className: 'nav-link', activeClass: 'active' },
+        'About',
+      ),
+      container,
+    );
+    const a = container.querySelector('a');
+    expect(a.className).toBe('nav-link active');
+    router.destroy();
+  });
 });
 
 // ── Redirect Component ─────────────────────────────────────

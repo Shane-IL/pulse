@@ -98,6 +98,44 @@ const Connected = connect({
 <Connected count={99} />;
 ```
 
+### Shorthand: `connect.from()`
+
+When you're selecting top-level keys from a single store, `connect.from()` is terser:
+
+```jsx
+// Instead of:
+connect({
+  count: counterStore.select((s) => s.count),
+  name: counterStore.select((s) => s.name),
+})(Counter);
+
+// Write:
+connect.from(counterStore, 'count', 'name')(Counter);
+```
+
+### Shorthand: `connect.local()`
+
+When you only need a local store with no global bindings:
+
+```jsx
+// Instead of:
+connect(null, {
+  store: { state: { open: false }, actions: { toggle: (s) => ({ ...s, open: !s.open }) } },
+})(Dropdown);
+
+// Write:
+connect.local({
+  state: { open: false },
+  actions: { toggle: (s) => ({ ...s, open: !s.open }) },
+})(Dropdown);
+
+// With lifecycle:
+connect.local(
+  { state: { open: false }, actions: { toggle: (s) => ({ ...s, open: !s.open }) } },
+  { onMount: ({ dom }) => dom.focus() },
+)(Dropdown);
+```
+
 ### Multiple Store Bindings
 
 A single component can bind to several stores:
@@ -107,6 +145,13 @@ const Connected = connect({
   user: authStore.select((s) => s.user),
   items: todoStore.select((s) => s.items),
   theme: settingsStore.select((s) => s.theme),
+})(Dashboard);
+
+// Or with pick():
+const Connected = connect({
+  ...authStore.pick('user'),
+  ...todoStore.pick('items'),
+  ...settingsStore.pick('theme'),
 })(Dashboard);
 ```
 

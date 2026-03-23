@@ -54,15 +54,21 @@ todoStore.getState();
 
 ## Dispatching Actions
 
+There are two ways to dispatch:
+
 ```js
+// String-based dispatch — serializable, loggable
 todoStore.dispatch('add', 'Buy milk');
 todoStore.dispatch('toggle', 1742500000000);
-todoStore.dispatch('setFilter', 'active');
+
+// Action dispatchers — cleaner call syntax
+todoStore.actions.add('Buy milk');
+todoStore.actions.toggle(1742500000000);
+todoStore.actions.setFilter('active');
 ```
 
-`dispatch(actionName, payload)` calls the named action with `(currentState, payload)` and replaces state with the return value.
+Both are equivalent. `store.actions` is an object with one method per action defined in the store config. Under the hood, `store.actions.add(payload)` calls `store.dispatch('add', payload)`.
 
-- Action names are strings — serializable, loggable, debuggable.
 - Unknown action names throw: `[pulse] Unknown action: "typo"`.
 - Payload is optional — actions like `clearAll: (state) => ({ ...state, items: [] })` ignore the second argument.
 
@@ -113,6 +119,21 @@ unsub();
 - `subscribe()` returns an unsubscribe function.
 - You rarely need manual subscriptions — `connect()` handles this for components.
 
+### Watching a Slice
+
+`watch()` is a selective subscription that only fires when a chosen slice of state changes:
+
+```js
+const unsub = todoStore.watch(
+  (s) => s.items.length,
+  (count, prevCount) => console.log(`Todos: ${prevCount} → ${count}`),
+);
+```
+
+- The selector runs on every dispatch; the callback only fires when the selected value changes (shallow comparison).
+- Receives `(newValue, previousValue)` — useful for side effects like analytics, localStorage sync, or logging.
+- Returns an unsubscribe function, just like `subscribe()`.
+
 ## Selectors
 
 Selectors extract slices of state for use with `connect()`:
@@ -125,6 +146,27 @@ const activeSelector = todoStore.select((state) =>
 ```
 
 `select(fn)` returns a `{ store, selector }` binding object — it doesn't call the function immediately. The selector runs when `connect()` checks for changes.
+
+### Picking Multiple Keys
+
+When you just want several top-level state properties, `pick()` is a shorthand that returns a bindings object:
+
+```js
+// Instead of:
+connect({
+  user: authStore.select((s) => s.user),
+  loading: authStore.select((s) => s.loading),
+})(Component);
+
+// You can write:
+connect(authStore.pick('user', 'loading'))(Component);
+
+// Or merge picks from multiple stores:
+connect({
+  ...authStore.pick('user'),
+  ...todoStore.pick('items', 'filter'),
+})(Dashboard);
+```
 
 ### Derived State via Selectors
 

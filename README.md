@@ -12,7 +12,7 @@ A render-driven UI framework with virtual DOM and immutable stores. Like React, 
 - **Built-in routing.** Store-based client-side router — routes are just state.
 - **Middleware.** Pluggable middleware for logging, action history, and custom logic.
 - **Devtools.** Built-in browser devtools panel — store inspector, action replay, time-travel.
-- **Tiny.** ~6 KB gzipped core, ~9 KB devtools. Zero runtime dependencies.
+- **Tiny.** ~7 KB gzipped core, ~9 KB devtools. Zero runtime dependencies.
 
 ## Quick Start
 
@@ -51,16 +51,15 @@ function Counter({ count }) {
   return (
     <div>
       <h1>{count}</h1>
-      <button onClick={() => counterStore.dispatch('increment')}>+</button>
-      <button onClick={() => counterStore.dispatch('decrement')}>-</button>
+      <button onClick={() => counterStore.actions.increment()}>+</button>
+      <button onClick={() => counterStore.actions.decrement()}>-</button>
     </div>
   );
 }
 
 // 3. Connect it to the store
-const ConnectedCounter = connect({
-  count: counterStore.select((state) => state.count),
-})(Counter);
+const ConnectedCounter = connect.from(counterStore, 'count')(Counter);
+// or: connect({ count: counterStore.select(s => s.count) })(Counter)
 
 // 4. Render
 render(<ConnectedCounter />, document.getElementById('app'));
@@ -94,7 +93,7 @@ Store dispatch → Notify subscribers → Schedule re-render → Expand componen
 
 ```bash
 npm install
-npm test          # 242 tests (vitest)
+npm test          # 266 tests (vitest)
 npm run typecheck # tsc --noEmit
 npm run lint      # eslint
 npm run build     # vite lib mode → dist/

@@ -434,3 +434,86 @@ describe('local stores', () => {
     expect(renderCb).not.toHaveBeenCalled();
   });
 });
+
+// ── connect.from ──────────────────────────────────────────
+
+describe('connect.from', () => {
+  it('selects top-level keys from a single store (variadic)', () => {
+    const store = createStore({
+      state: { x: 1, y: 2, z: 3 },
+      actions: {},
+    });
+    const inner = vi.fn(() => null);
+    const Connected = connect.from(store, 'x', 'z')(inner);
+    const container = document.createElement('div');
+    render(h(Connected, null), container);
+    const props = inner.mock.calls[0][0];
+    expect(props.x).toBe(1);
+    expect(props.z).toBe(3);
+    expect(props.y).toBeUndefined();
+  });
+
+  it('accepts an array of keys', () => {
+    const store = createStore({
+      state: { a: 10, b: 20 },
+      actions: {},
+    });
+    const inner = vi.fn(() => null);
+    const Connected = connect.from(store, ['a', 'b'])(inner);
+    const container = document.createElement('div');
+    render(h(Connected, null), container);
+    const props = inner.mock.calls[0][0];
+    expect(props.a).toBe(10);
+    expect(props.b).toBe(20);
+  });
+
+  it('produces a connected component', () => {
+    const store = createStore({ state: { x: 1 }, actions: {} });
+    const Connected = connect.from(store, 'x')(() => null);
+    expect(Connected[CONNECTED]).toBe(true);
+  });
+});
+
+// ── connect.local ─────────────────────────────────────────
+
+describe('connect.local', () => {
+  it('creates a component with local store only', () => {
+    const inner = vi.fn(() => h('div', null));
+    const Connected = connect.local({
+      state: { open: false },
+      actions: { toggle: (s) => ({ ...s, open: !s.open }) },
+    })(inner);
+
+    const container = document.createElement('div');
+    render(h(Connected, null), container);
+    const props = inner.mock.calls[0][0];
+    expect(props.open).toBe(false);
+    expect(typeof props.toggle).toBe('function');
+  });
+
+  it('accepts lifecycle as second argument', () => {
+    const mountSpy = vi.fn();
+    const inner = vi.fn(() => h('div', null));
+    const Connected = connect.local(
+      {
+        state: { count: 0 },
+        actions: {},
+      },
+      {
+        onMount: mountSpy,
+      },
+    )(inner);
+
+    const container = document.createElement('div');
+    render(h(Connected, null), container);
+    expect(mountSpy).toHaveBeenCalled();
+  });
+
+  it('is a connected component', () => {
+    const Connected = connect.local({
+      state: {},
+      actions: {},
+    })(() => null);
+    expect(Connected[CONNECTED]).toBe(true);
+  });
+});
