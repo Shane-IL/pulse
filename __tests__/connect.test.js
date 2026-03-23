@@ -361,7 +361,6 @@ describe('local stores', () => {
   });
 
   it('dispatching local action updates state and triggers re-render', () => {
-    const store = createStore({ state: {}, actions: {} });
     const Connected = connect(
       {},
       {
