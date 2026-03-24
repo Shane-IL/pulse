@@ -72,20 +72,39 @@ Both are equivalent. `store.actions` is an object with one method per action def
 - Unknown action names throw: `[pulse] Unknown action: "typo"`.
 - Payload is optional — actions like `clearAll: (state) => ({ ...state, items: [] })` ignore the second argument.
 
-## Actions Are Pure
+## Action Styles
 
-Actions are pure functions: `(state, payload?) => newState`. They must return a new state object — never mutate the existing one:
+Actions can be written in two styles:
+
+### Return-style (classic)
+
+Return a new state object. The original is never touched:
 
 ```js
-// GOOD — returns new object
-increment: (state) => ({ ...state, count: state.count + 1 });
-
-// BAD — mutates existing state
-increment: (state) => {
-  state.count++;
-  return state;
-};
+actions: {
+  increment: (state) => ({ ...state, count: state.count + 1 }),
+  addItem: (state, item) => ({ ...state, items: [...state.items, item] }),
+}
 ```
+
+### Mutation-style (recommended)
+
+Mutate the `prevState` parameter directly — Pulse uses a structural-sharing proxy to produce a new immutable state behind the scenes:
+
+```js
+actions: {
+  increment: (prevState) => { prevState.count++ },
+  addItem: (prevState, item) => { prevState.items.push(item) },
+  toggle: (prevState, id) => {
+    const item = prevState.items.find(i => i.id === id);
+    item.done = !item.done;
+  },
+}
+```
+
+The key difference: **return nothing** (or `undefined`) and Pulse treats it as mutation-style. Return a value and Pulse uses that directly (classic style). Both styles can coexist in the same store.
+
+Structural sharing means only the objects you actually touch are cloned — everything else keeps the same reference. This is important for selectors and `connect()` change detection.
 
 ## Identity Check
 

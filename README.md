@@ -41,8 +41,8 @@ import { h, createStore, connect, render } from '@shane_il/pulse';
 const counterStore = createStore({
   state: { count: 0 },
   actions: {
-    increment: (state) => ({ ...state, count: state.count + 1 }),
-    decrement: (state) => ({ ...state, count: state.count - 1 }),
+    increment: (prevState) => { prevState.count++ },
+    decrement: (prevState) => { prevState.count-- },
   },
 });
 
@@ -93,7 +93,7 @@ Store dispatch → Notify subscribers → Schedule re-render → Expand componen
 
 ```bash
 npm install
-npm test          # 266 tests (vitest)
+npm test          # 294 tests (vitest)
 npm run typecheck # tsc --noEmit
 npm run lint      # eslint
 npm run build     # vite lib mode → dist/

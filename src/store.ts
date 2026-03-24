@@ -1,8 +1,9 @@
 import { shallowEqual } from './shallowEqual';
+import { produceAction } from './produce';
 import type { Middleware, DispatchContext } from './middleware';
 
 export interface StoreActions<S> {
-  [actionName: string]: (state: S, payload?: any) => S;
+  [actionName: string]: (state: S, payload?: any) => S | void;
 }
 
 export interface StoreConfig<S> {
@@ -59,9 +60,9 @@ export function createStore<S>(config: StoreConfig<S>): Store<S> {
     if (!action) {
       throw new Error(`[pulse] Unknown action: "${actionName}"`);
     }
-    const nextState = action(state, payload);
+    const nextState = produceAction(state as object, action as any, payload);
     if (nextState === state) return;
-    state = nextState;
+    state = nextState as S;
     notify();
   }
 
@@ -94,10 +95,14 @@ export function createStore<S>(config: StoreConfig<S>): Store<S> {
         fn(ctx, next);
       } else {
         // Core action at the center of the onion
-        const nextState = action(ctx.prevState, ctx.payload);
-        ctx.nextState = nextState;
+        const nextState = produceAction(
+          ctx.prevState as object,
+          action as any,
+          ctx.payload,
+        );
+        ctx.nextState = nextState as S;
         if (nextState !== state) {
-          state = nextState;
+          state = nextState as S;
           notify();
         }
       }

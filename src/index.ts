@@ -5,6 +5,7 @@ export { render } from './render';
 export { flushSync } from './scheduler';
 export { createRouter } from './router';
 export { logger, actionHistory, createAsyncAction } from './middleware';
+export { produce } from './produce';
 
 // Re-export types for consumers
 export type {
