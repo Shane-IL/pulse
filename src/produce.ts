@@ -179,14 +179,21 @@ export function produce<S extends object>(
   return finalize(meta) as S;
 }
 
+function isPlainObject(value: any): value is Record<string, any> {
+  if (value === null || typeof value !== 'object') return false;
+  const proto = Object.getPrototypeOf(value);
+  return proto === Object.prototype || proto === null;
+}
+
 /**
  * Run a store action on a draft proxy.
  *
- * - Default: action mutates the draft. Proxy produces new state with structural sharing.
- * - If the action returns `replace(newState)`, the entire state is swapped.
- * - If nothing was mutated, returns the original base (no-op).
+ * Three patterns:
+ * 1. Return a partial object → shallow-merged into state (simple updates)
+ * 2. Mutate the draft directly → proxy produces new state (complex/nested updates)
+ * 3. Return replace(newState) → full state swap
  *
- * The action is called exactly once, always on the proxy.
+ * If nothing changed, returns the original base (no-op).
  */
 export function produceAction<S extends object>(
   base: S,
@@ -196,10 +203,19 @@ export function produceAction<S extends object>(
   const meta = createDraftMeta(base, null, null);
   const proxy = createProxy(meta);
   const returned = action(proxy as S, payload);
-  // Check for replace() sentinel
+
+  // replace() — full state swap
   if (returned !== undefined && returned !== null && (returned as any)[REPLACE] !== undefined) {
     return (returned as any)[REPLACE] as S;
   }
+
+  // Partial object — merge returned keys onto the draft, then finalize
+  if (isPlainObject(returned) && !(returned as any)[DRAFT]) {
+    for (const key of Object.keys(returned)) {
+      (proxy as any)[key] = (returned as any)[key];
+    }
+  }
+
   // Finalize the draft (structural sharing, no-op if nothing mutated)
   return finalize(meta) as S;
 }

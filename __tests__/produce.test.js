@@ -237,33 +237,48 @@ describe('mutation-style store actions', () => {
     expect(store.getState().count).toBe(99);
   });
 
-  it('expression-body arrow syntax works (no curlies)', () => {
+  it('partial return merges into state', () => {
+    const store = createStore({
+      state: { count: 0, name: 'test' },
+      actions: {
+        increment: (s) => ({ count: s.count + 1 }),
+        rename: (s, name) => ({ name }),
+      },
+    });
+    store.dispatch('increment');
+    expect(store.getState()).toEqual({ count: 1, name: 'test' });
+    store.dispatch('rename', 'hello');
+    expect(store.getState()).toEqual({ count: 1, name: 'hello' });
+  });
+
+  it('partial return is no-op when values unchanged', () => {
     const store = createStore({
       state: { count: 0 },
       actions: {
-        increment: (s) => s.count++,
-        add: (s, n) => (s.count += n),
+        same: (s) => ({ count: s.count }),
+      },
+    });
+    const listener = vi.fn();
+    store.subscribe(listener);
+    store.dispatch('same');
+    expect(listener).not.toHaveBeenCalled();
+  });
+
+  it('partial return, mutation, and replace coexist', () => {
+    const store = createStore({
+      state: { count: 0, name: 'test' },
+      actions: {
+        increment: (s) => ({ count: s.count + 1 }),
+        addItem: (s) => { s.count += 10 },
+        reset: () => replace({ count: 0, name: '' }),
       },
     });
     store.dispatch('increment');
     expect(store.getState().count).toBe(1);
-    store.dispatch('add', 10);
+    store.dispatch('addItem');
     expect(store.getState().count).toBe(11);
-  });
-
-  it('mutation and replace coexist in same store', () => {
-    const store = createStore({
-      state: { count: 0 },
-      actions: {
-        increment: (s) => { s.count++ },
-        reset: () => replace({ count: 0 }),
-      },
-    });
-    store.dispatch('increment');
-    store.dispatch('increment');
-    expect(store.getState().count).toBe(2);
     store.dispatch('reset');
-    expect(store.getState().count).toBe(0);
+    expect(store.getState()).toEqual({ count: 0, name: '' });
   });
 
   it('deep nested mutation', () => {

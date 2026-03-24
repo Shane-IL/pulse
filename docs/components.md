@@ -120,18 +120,18 @@ When you only need a local store with no global bindings:
 ```jsx
 // Instead of:
 connect(null, {
-  store: { state: { open: false }, actions: { toggle: (s) => (s.open = !s.open) } },
+  store: { state: { open: false }, actions: { toggle: (s) => ({ open: !s.open }) } },
 })(Dropdown);
 
 // Write:
 connect.local({
   state: { open: false },
-  actions: { toggle: (s) => (s.open = !s.open) },
+  actions: { toggle: (s) => ({ open: !s.open }) },
 })(Dropdown);
 
 // With lifecycle:
 connect.local(
-  { state: { open: false }, actions: { toggle: (s) => (s.open = !s.open) } },
+  { state: { open: false }, actions: { toggle: (s) => ({ open: !s.open }) } },
   { onMount: ({ dom }) => dom.focus() },
 )(Dropdown);
 ```
@@ -294,7 +294,7 @@ const ConnectedAccordion = connect(null, {
   store: {
     state: { expanded: false },
     actions: {
-      toggleExpanded: (s) => (s.expanded = !s.expanded),
+      toggleExpanded: (s) => ({ expanded: !s.expanded }),
     },
   },
 })(Accordion);
@@ -312,7 +312,7 @@ const ConnectedPanel = connect(
   {
     store: {
       state: { collapsed: false },
-      actions: { toggle: (s) => (s.collapsed = !s.collapsed) },
+      actions: { toggle: (s) => ({ collapsed: !s.collapsed }) },
     },
   },
 )(Panel);

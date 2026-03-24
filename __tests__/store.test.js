@@ -8,9 +8,9 @@ function makeCounter() {
   return createStore({
     state: { count: 0 },
     actions: {
-      increment: (s) => { s.count++ },
-      decrement: (s) => { s.count-- },
-      set: (s, value) => { s.count = value },
+      increment: (s) => ({ count: s.count + 1 }),
+      decrement: (s) => ({ count: s.count - 1 }),
+      set: (s, value) => ({ count: value }),
       noop: () => {}, // no mutations — no-op
     },
   });

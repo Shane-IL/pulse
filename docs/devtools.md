@@ -57,7 +57,7 @@ import { logger } from '@shane_il/pulse';
 const store = instrumentStore({
   name: 'counter',
   state: { count: 0 },
-  actions: { increment: (s) => s.count++ },
+  actions: { increment: (s) => ({ count: s.count + 1 }) },
   middleware: [logger()], // logger runs in addition to actionHistory
 });
 ```
@@ -178,7 +178,7 @@ import { instrumentStore, devtools } from '@shane_il/pulse/devtools';
 const store = instrumentStore({
   name: 'counter',
   state: { count: 0 },
-  actions: { increment: (s) => s.count++ },
+  actions: { increment: (s) => ({ count: s.count + 1 }) },
 });
 
 store.dispatch('increment');

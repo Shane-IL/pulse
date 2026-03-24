@@ -24,7 +24,7 @@ const todoStore = createStore({
       const idx = s.items.findIndex((i) => i.id === id);
       s.items.splice(idx, 1);
     },
-    setFilter: (s, filter) => (s.filter = filter),
+    setFilter: (s, filter) => ({ filter }),
   },
 });
 ```
@@ -71,21 +71,35 @@ Both are equivalent. `store.actions` is an object with one method per action def
 
 ## Writing Actions
 
-Actions mutate the `prevState` parameter directly. Pulse uses a structural-sharing proxy behind the scenes — only the objects you touch are cloned, everything else keeps the same reference:
+Return an object with only the fields you're changing — Pulse merges it into state:
 
 ```js
 actions: {
-  increment: (s) => s.count++,
-  addItem: (s, item) => s.items.push(item),
-  setTheme: (s, theme) => (s.settings.theme = theme),
+  increment: (s) => ({ count: s.count + 1 }),
+  setTheme: (s, theme) => ({ theme }),
+  setUser: (s, user) => ({ user, loading: false }),
+}
+```
+
+No spreading the whole state, no manual cloning — just return what changed.
+
+### Complex Updates
+
+For nested objects and arrays, mutate the state parameter directly. Pulse uses a structural-sharing proxy behind the scenes:
+
+```js
+actions: {
   toggle: (s, id) => {
     const item = s.items.find(i => i.id === id);
     item.done = !item.done;
   },
+  addItem: (s, text) => {
+    s.items.push({ id: Date.now(), text, done: false });
+  },
 }
 ```
 
-No spreading, no manual cloning — just mutate and Pulse handles immutability. Simple actions use expression-body arrows; multi-step ones use curly braces. Arrays work naturally: `push`, `pop`, `splice`, `sort`, `reverse`, `shift`, `unshift` all work as expected.
+Arrays work naturally: `push`, `pop`, `splice`, `sort`, `reverse`, `shift`, `unshift` all work.
 
 ### Full State Replacement
 
@@ -96,11 +110,9 @@ import { replace } from '@shane_il/pulse';
 
 actions: {
   reset: () => replace({ items: [], filter: 'all' }),
-  loadSnapshot: (prevState, snapshot) => replace(snapshot),
+  loadSnapshot: (s, snapshot) => replace(snapshot),
 }
 ```
-
-`replace()` is the escape hatch — use it when you want to swap the entire state object rather than mutate specific fields.
 
 ## Identity Check
 
@@ -209,9 +221,9 @@ Use multiple stores to separate concerns:
 const authStore = createStore({
   state: { user: null, loading: false },
   actions: {
-    setUser: (s, user) => { s.user = user; s.loading = false },
+    setUser: (s, user) => ({ user, loading: false }),
     logout: () => replace({ user: null, loading: false }),
-    setLoading: (s) => (s.loading = true),
+    setLoading: () => ({ loading: true }),
   },
 });
 
