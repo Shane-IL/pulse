@@ -11,15 +11,14 @@ const store = instrumentStore({
   name: 'todos',
   state: { items: [], nextId: 1 },
   actions: {
-    add: (s, text) => ({
-      ...s,
-      items: [...s.items, { id: s.nextId, text, done: false }],
-      nextId: s.nextId + 1,
-    }),
-    toggle: (s, id) => ({
-      ...s,
-      items: s.items.map((i) => (i.id === id ? { ...i, done: !i.done } : i)),
-    }),
+    add: (s, text) => {
+      s.items.push({ id: s.nextId, text, done: false });
+      s.nextId++;
+    },
+    toggle: (s, id) => {
+      const item = s.items.find((i) => i.id === id);
+      item.done = !item.done;
+    },
   },
 });
 
@@ -44,7 +43,7 @@ const store = instrumentStore({
   name: 'counter',
   state: { count: 0 },
   actions: {
-    increment: (s) => ({ ...s, count: s.count + 1 }),
+    increment: (s) => s.count++,
   },
 });
 ```
@@ -58,7 +57,7 @@ import { logger } from '@shane_il/pulse';
 const store = instrumentStore({
   name: 'counter',
   state: { count: 0 },
-  actions: { increment: (s) => ({ ...s, count: s.count + 1 }) },
+  actions: { increment: (s) => s.count++ },
   middleware: [logger()], // logger runs in addition to actionHistory
 });
 ```
@@ -179,7 +178,7 @@ import { instrumentStore, devtools } from '@shane_il/pulse/devtools';
 const store = instrumentStore({
   name: 'counter',
   state: { count: 0 },
-  actions: { increment: (s) => ({ ...s, count: s.count + 1 }) },
+  actions: { increment: (s) => s.count++ },
 });
 
 store.dispatch('increment');

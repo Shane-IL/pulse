@@ -237,6 +237,20 @@ describe('mutation-style store actions', () => {
     expect(store.getState().count).toBe(99);
   });
 
+  it('expression-body arrow syntax works (no curlies)', () => {
+    const store = createStore({
+      state: { count: 0 },
+      actions: {
+        increment: (s) => s.count++,
+        add: (s, n) => (s.count += n),
+      },
+    });
+    store.dispatch('increment');
+    expect(store.getState().count).toBe(1);
+    store.dispatch('add', 10);
+    expect(store.getState().count).toBe(11);
+  });
+
   it('mutation and replace coexist in same store', () => {
     const store = createStore({
       state: { count: 0 },

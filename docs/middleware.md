@@ -40,8 +40,8 @@ const store = createStore({
   name: 'counter',
   state: { count: 0 },
   actions: {
-    increment: (s) => ({ ...s, count: s.count + 1 }),
-    set: (s, v) => ({ ...s, count: v }),
+    increment: (s) => s.count++,
+    set: (s, v) => (s.count = v),
   },
   middleware: [logger(), actionHistory(history)],
 });
@@ -81,7 +81,7 @@ import { logger } from '@shane_il/pulse';
 const store = createStore({
   name: 'counter',
   state: { count: 0 },
-  actions: { increment: (s) => ({ ...s, count: s.count + 1 }) },
+  actions: { increment: (s) => s.count++ },
   middleware: [logger()],
 });
 
@@ -103,7 +103,7 @@ import { actionHistory } from '@shane_il/pulse';
 const history = [];
 const store = createStore({
   state: { count: 0 },
-  actions: { increment: (s) => ({ ...s, count: s.count + 1 }) },
+  actions: { increment: (s) => s.count++ },
   middleware: [actionHistory(history, { maxEntries: 100 })],
 });
 
@@ -204,9 +204,9 @@ import { createStore, createAsyncAction } from '@shane_il/pulse';
 const userStore = createStore({
   state: { user: null, loading: false, error: null },
   actions: {
-    fetchStart: (s) => ({ ...s, loading: true, error: null }),
-    fetchOk: (s, user) => ({ ...s, loading: false, user }),
-    fetchFail: (s, error) => ({ ...s, loading: false, error }),
+    fetchStart: (s) => { s.loading = true; s.error = null },
+    fetchOk: (s, user) => { s.loading = false; s.user = user },
+    fetchFail: (s, error) => { s.loading = false; s.error = error },
   },
 });
 

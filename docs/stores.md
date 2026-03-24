@@ -24,7 +24,7 @@ const todoStore = createStore({
       const idx = s.items.findIndex((i) => i.id === id);
       s.items.splice(idx, 1);
     },
-    setFilter: (s, filter) => { s.filter = filter },
+    setFilter: (s, filter) => (s.filter = filter),
   },
 });
 ```
@@ -67,7 +67,7 @@ todoStore.actions.setFilter('active');
 Both are equivalent. `store.actions` is an object with one method per action defined in the store config. Under the hood, `store.actions.add(payload)` calls `store.dispatch('add', payload)`.
 
 - Unknown action names throw: `[pulse] Unknown action: "typo"`.
-- Payload is optional — actions like `clearAll: (state) => ({ ...state, items: [] })` ignore the second argument.
+- Payload is optional — actions like `clearAll: () => replace({ items: [] })` ignore the second argument.
 
 ## Writing Actions
 
@@ -75,17 +75,17 @@ Actions mutate the `prevState` parameter directly. Pulse uses a structural-shari
 
 ```js
 actions: {
-  increment: (prevState) => { prevState.count++ },
-  addItem: (prevState, item) => { prevState.items.push(item) },
-  toggle: (prevState, id) => {
-    const item = prevState.items.find(i => i.id === id);
+  increment: (s) => s.count++,
+  addItem: (s, item) => s.items.push(item),
+  setTheme: (s, theme) => (s.settings.theme = theme),
+  toggle: (s, id) => {
+    const item = s.items.find(i => i.id === id);
     item.done = !item.done;
   },
-  setTheme: (prevState, theme) => { prevState.settings.theme = theme },
 }
 ```
 
-No spreading, no manual cloning — just mutate and Pulse handles immutability. Arrays work naturally: `push`, `pop`, `splice`, `sort`, `reverse`, `shift`, `unshift` all work as expected.
+No spreading, no manual cloning — just mutate and Pulse handles immutability. Simple actions use expression-body arrows; multi-step ones use curly braces. Arrays work naturally: `push`, `pop`, `splice`, `sort`, `reverse`, `shift`, `unshift` all work as expected.
 
 ### Full State Replacement
 
@@ -104,15 +104,15 @@ actions: {
 
 ## Identity Check
 
-If an action returns the exact same state reference (`nextState === state`), subscribers are **not** notified. This is useful for no-op actions:
+If an action doesn't mutate anything, the state reference stays the same and subscribers are **not** notified:
 
 ```js
 const store = createStore({
   state: { count: 0 },
   actions: {
-    incrementIfPositive: (state) => {
-      if (state.count >= 0) return { ...state, count: state.count + 1 };
-      return state; // no-op — subscribers NOT called
+    incrementIfPositive: (s) => {
+      if (s.count >= 0) s.count++;
+      // if count < 0, nothing is mutated → no-op, subscribers NOT called
     },
   },
 });
@@ -211,7 +211,7 @@ const authStore = createStore({
   actions: {
     setUser: (s, user) => { s.user = user; s.loading = false },
     logout: () => replace({ user: null, loading: false }),
-    setLoading: (s) => { s.loading = true },
+    setLoading: (s) => (s.loading = true),
   },
 });
 

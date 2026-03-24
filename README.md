@@ -41,8 +41,8 @@ import { h, createStore, connect, render } from '@shane_il/pulse';
 const counterStore = createStore({
   state: { count: 0 },
   actions: {
-    increment: (prevState) => { prevState.count++ },
-    decrement: (prevState) => { prevState.count-- },
+    increment: (s) => s.count++,
+    decrement: (s) => s.count--,
   },
 });
 

@@ -59,9 +59,9 @@ import { createStore } from '@shane_il/pulse';
 export const counterStore = createStore({
   state: { count: 0 },
   actions: {
-    increment: (state) => ({ ...state, count: state.count + 1 }),
-    decrement: (state) => ({ ...state, count: state.count - 1 }),
-    set: (state, value) => ({ ...state, count: value }),
+    increment: (s) => s.count++,
+    decrement: (s) => s.count--,
+    set: (s, value) => (s.count = value),
   },
 });
 ```
