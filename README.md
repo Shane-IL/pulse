@@ -93,7 +93,7 @@ Store dispatch → Notify subscribers → Schedule re-render → Expand componen
 
 ```bash
 npm install
-npm test          # 294 tests (vitest)
+npm test          # 296 tests (vitest)
 npm run typecheck # tsc --noEmit
 npm run lint      # eslint
 npm run build     # vite lib mode → dist/

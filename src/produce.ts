@@ -10,6 +10,16 @@
  */
 
 const DRAFT = Symbol('pulse_draft');
+const REPLACE = Symbol('pulse_replace');
+
+/**
+ * Wraps a value to signal full state replacement inside a mutation-style action.
+ *
+ *   reset: () => replace({ count: 0 })
+ */
+export function replace<S>(value: S): S {
+  return { [REPLACE]: value } as any;
+}
 
 interface DraftMeta {
   base: any;
@@ -170,12 +180,13 @@ export function produce<S extends object>(
 }
 
 /**
- * Run an action that may either return new state or mutate a draft.
- * - If the action returns a non-undefined value → use that (classic style).
- * - If the action returns undefined → use the draft result (mutation style).
- * - If nothing changed in mutation style → returns original base (no-op).
+ * Run a store action on a draft proxy.
  *
- * The action is called exactly once.
+ * - Default: action mutates the draft. Proxy produces new state with structural sharing.
+ * - If the action returns `replace(newState)`, the entire state is swapped.
+ * - If nothing was mutated, returns the original base (no-op).
+ *
+ * The action is called exactly once, always on the proxy.
  */
 export function produceAction<S extends object>(
   base: S,
@@ -185,10 +196,10 @@ export function produceAction<S extends object>(
   const meta = createDraftMeta(base, null, null);
   const proxy = createProxy(meta);
   const returned = action(proxy as S, payload);
-  if (returned !== undefined && returned !== proxy) {
-    // Classic return-style — use the returned value directly
-    return returned as S;
+  // Check for replace() sentinel
+  if (returned !== undefined && returned !== null && (returned as any)[REPLACE] !== undefined) {
+    return (returned as any)[REPLACE] as S;
   }
-  // Mutation-style or void return — finalize the draft
+  // Finalize the draft (structural sharing, no-op if nothing mutated)
   return finalize(meta) as S;
 }

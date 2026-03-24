@@ -8,10 +8,10 @@ function makeCounter() {
   return createStore({
     state: { count: 0 },
     actions: {
-      increment: (state) => ({ ...state, count: state.count + 1 }),
-      decrement: (state) => ({ ...state, count: state.count - 1 }),
-      set: (state, value) => ({ ...state, count: value }),
-      noop: (state) => state, // returns same reference
+      increment: (s) => { s.count++ },
+      decrement: (s) => { s.count-- },
+      set: (s, value) => { s.count = value },
+      noop: () => {}, // no mutations — no-op
     },
   });
 }
@@ -192,7 +192,7 @@ describe('store.watch', () => {
     const store = createStore({
       state: { x: 1, y: 2 },
       actions: {
-        setY: (s, v) => ({ ...s, y: v }),
+        setY: (s, v) => { s.y = v },
       },
     });
     const cb = vi.fn();
@@ -225,13 +225,13 @@ describe('store.watch', () => {
     const store = createStore({
       state: { items: [1, 2, 3] },
       actions: {
-        setItems: (s, items) => ({ ...s, items }),
-        noop: (s) => ({ ...s }), // new reference but same items
+        setItems: (s, items) => { s.items = items },
+        noop: () => {}, // no mutations
       },
     });
     const cb = vi.fn();
     store.watch((s) => s.items, cb);
-    store.dispatch('noop'); // items array is same reference
+    store.dispatch('noop');
     expect(cb).not.toHaveBeenCalled();
     store.dispatch('setItems', [4, 5]);
     expect(cb).toHaveBeenCalledWith([4, 5], [1, 2, 3]);

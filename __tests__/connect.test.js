@@ -50,7 +50,7 @@ describe('ComponentInstance', () => {
   it('mount subscribes to stores', () => {
     const store = createStore({
       state: { x: 1 },
-      actions: { inc: (s) => ({ x: s.x + 1 }) },
+      actions: { inc: (s) => { s.x++ } },
     });
     function Inner() {
       return null;
@@ -70,7 +70,7 @@ describe('ComponentInstance', () => {
   it('unmount unsubscribes from stores', () => {
     const store = createStore({
       state: { x: 1 },
-      actions: { inc: (s) => ({ x: s.x + 1 }) },
+      actions: { inc: (s) => { s.x++ } },
     });
     function Inner() {
       return null;
@@ -90,7 +90,7 @@ describe('ComponentInstance', () => {
   it('skips render when shallowEqual', () => {
     const store = createStore({
       state: { x: 1 },
-      actions: { noop: (s) => ({ ...s }) }, // new object, same values
+      actions: { noop: () => {} }, // no-op
     });
     function Inner() {
       return null;
@@ -267,7 +267,7 @@ describe('local stores', () => {
       {
         store: {
           state: { count: 0 },
-          actions: { increment: (s) => ({ ...s, count: s.count + 1 }) },
+          actions: { increment: (s) => { s.count++ } },
         },
       },
     )(inner);
@@ -314,7 +314,7 @@ describe('local stores', () => {
       {
         store: {
           state: {},
-          actions: { toggle: (s) => s },
+          actions: { toggle: () => {} },
         },
       },
     )(function V() {
@@ -326,7 +326,7 @@ describe('local stores', () => {
       {
         store: {
           state: {},
-          actions: { toggle: (s) => s },
+          actions: { toggle: () => {} },
         },
       },
     )(function V() {
@@ -347,7 +347,7 @@ describe('local stores', () => {
       {
         store: {
           state: { count: 0 },
-          actions: { count: (s) => s },
+          actions: { count: () => {} },
         },
       },
     )(function V() {
@@ -366,7 +366,7 @@ describe('local stores', () => {
       {
         store: {
           state: { count: 0 },
-          actions: { increment: (s) => ({ ...s, count: s.count + 1 }) },
+          actions: { increment: (s) => { s.count++ } },
         },
       },
     )(function V() {
@@ -400,7 +400,7 @@ describe('local stores', () => {
     const Connected = connect(null, {
       store: {
         state: { open: false },
-        actions: { toggle: (s) => ({ ...s, open: !s.open }) },
+        actions: { toggle: (s) => { s.open = !s.open } },
       },
     })(inner);
 
@@ -418,7 +418,7 @@ describe('local stores', () => {
       {
         store: {
           state: { count: 0 },
-          actions: { noop: (s) => s }, // returns same reference
+          actions: { noop: () => {} }, // empty function body for no-op
         },
       },
     )(function V() {
@@ -481,7 +481,7 @@ describe('connect.local', () => {
     const inner = vi.fn(() => h('div', null));
     const Connected = connect.local({
       state: { open: false },
-      actions: { toggle: (s) => ({ ...s, open: !s.open }) },
+      actions: { toggle: (s) => { s.open = !s.open } },
     })(inner);
 
     const container = document.createElement('div');

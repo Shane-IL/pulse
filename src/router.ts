@@ -1,6 +1,7 @@
 import { createStore } from './store';
 import { connect } from './connect';
 import { h } from './createElement';
+import { replace } from './produce';
 import type { Store } from './store';
 import type { VNode, ComponentFunction } from './vnode';
 
@@ -154,7 +155,7 @@ export function createRouter(options: RouterOptions): Router {
       matched: initMatch?.pattern ?? null,
     },
     actions: {
-      _sync: (_: RouteState, payload: RouteState) => payload,
+      _sync: (_: RouteState, payload: RouteState) => replace(payload),
     },
   });
 

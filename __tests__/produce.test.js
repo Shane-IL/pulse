@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { produce } from '../src/produce';
+import { produce, replace } from '../src/produce';
 import { createStore } from '../src/store';
 
 // ── produce (standalone) ──────────────────────────────────
@@ -215,22 +215,41 @@ describe('mutation-style store actions', () => {
     expect(listener).not.toHaveBeenCalled();
   });
 
-  it('mixed return-style and mutation-style actions', () => {
+  it('replace() swaps entire state', () => {
+    const store = createStore({
+      state: { count: 5, name: 'test' },
+      actions: {
+        reset: () => replace({ count: 0, name: 'reset' }),
+      },
+    });
+    store.dispatch('reset');
+    expect(store.getState()).toEqual({ count: 0, name: 'reset' });
+  });
+
+  it('replace() with payload', () => {
     const store = createStore({
       state: { count: 0 },
       actions: {
-        // Return-style (existing pattern)
-        increment: (state) => ({ ...state, count: state.count + 1 }),
-        // Mutation-style (new pattern)
-        double: (prevState) => {
-          prevState.count *= 2;
-        },
+        load: (_s, snapshot) => replace(snapshot),
+      },
+    });
+    store.dispatch('load', { count: 99 });
+    expect(store.getState().count).toBe(99);
+  });
+
+  it('mutation and replace coexist in same store', () => {
+    const store = createStore({
+      state: { count: 0 },
+      actions: {
+        increment: (s) => { s.count++ },
+        reset: () => replace({ count: 0 }),
       },
     });
     store.dispatch('increment');
-    expect(store.getState().count).toBe(1);
-    store.dispatch('double');
+    store.dispatch('increment');
     expect(store.getState().count).toBe(2);
+    store.dispatch('reset');
+    expect(store.getState().count).toBe(0);
   });
 
   it('deep nested mutation', () => {

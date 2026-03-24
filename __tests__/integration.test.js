@@ -6,7 +6,7 @@ describe('integration: store -> connect -> render', () => {
     const store = createStore({
       state: { count: 0 },
       actions: {
-        increment: (s) => ({ ...s, count: s.count + 1 }),
+        increment: (s) => { s.count++ },
       },
     });
 
@@ -33,7 +33,7 @@ describe('integration: store -> connect -> render', () => {
     const store = createStore({
       state: { count: 0 },
       actions: {
-        increment: (s) => ({ ...s, count: s.count + 1 }),
+        increment: (s) => { s.count++ },
       },
     });
 
@@ -65,7 +65,7 @@ describe('integration: store -> connect -> render', () => {
     const store = createStore({
       state: { count: 0 },
       actions: {
-        increment: (s) => ({ ...s, count: s.count + 1 }),
+        increment: (s) => { s.count++ },
       },
     });
 
@@ -102,11 +102,11 @@ describe('integration: store -> connect -> render', () => {
   it('connected component with multiple stores', () => {
     const nameStore = createStore({
       state: { name: 'World' },
-      actions: { set: (_, name) => ({ name }) },
+      actions: { set: (s, name) => { s.name = name } },
     });
     const countStore = createStore({
       state: { count: 0 },
-      actions: { increment: (s) => ({ ...s, count: s.count + 1 }) },
+      actions: { increment: (s) => { s.count++ } },
     });
 
     function Greeting({ name, count }) {
@@ -184,7 +184,7 @@ describe('lifecycle integration', () => {
 
     const store = createStore({
       state: { show: true },
-      actions: { hide: () => ({ show: false }) },
+      actions: { hide: (s) => { s.show = false } },
     });
 
     function App({ show }) {
@@ -212,7 +212,7 @@ describe('lifecycle integration', () => {
 
     const store = createStore({
       state: { count: 0 },
-      actions: { inc: (s) => ({ count: s.count + 1 }) },
+      actions: { inc: (s) => { s.count++ } },
     });
 
     function Counter({ count }) {
@@ -268,7 +268,7 @@ describe('lifecycle integration', () => {
 
     const store = createStore({
       state: { show: true },
-      actions: { hide: () => ({ show: false }) },
+      actions: { hide: (s) => { s.show = false } },
     });
 
     function App({ show }) {
@@ -296,7 +296,7 @@ describe('onUpdate lifecycle', () => {
     const onUpdate = vi.fn();
     const store = createStore({
       state: { count: 0 },
-      actions: { inc: (s) => ({ count: s.count + 1 }) },
+      actions: { inc: (s) => { s.count++ } },
     });
 
     function Counter({ count }) {
@@ -326,7 +326,7 @@ describe('onUpdate lifecycle', () => {
     const onUpdate = vi.fn();
     const store = createStore({
       state: { count: 0 },
-      actions: { inc: (s) => ({ count: s.count + 1 }) },
+      actions: { inc: (s) => { s.count++ } },
     });
 
     function Counter({ count }) {
@@ -356,7 +356,7 @@ describe('onUpdate lifecycle', () => {
     });
     const store = createStore({
       state: { count: 0 },
-      actions: { inc: (s) => ({ count: s.count + 1 }) },
+      actions: { inc: (s) => { s.count++ } },
     });
 
     function Counter({ count }) {
@@ -386,8 +386,8 @@ describe('onUpdate lifecycle', () => {
     const store = createStore({
       state: { count: 0, show: true },
       actions: {
-        inc: (s) => ({ ...s, count: s.count + 1 }),
-        hide: (s) => ({ ...s, show: false }),
+        inc: (s) => { s.count++ },
+        hide: (s) => { s.show = false },
       },
     });
 
@@ -424,7 +424,7 @@ describe('onUpdate lifecycle', () => {
   it('does not fire when no lifecycle is provided', () => {
     const store = createStore({
       state: { count: 0 },
-      actions: { inc: (s) => ({ count: s.count + 1 }) },
+      actions: { inc: (s) => { s.count++ } },
     });
 
     function Counter({ count }) {
@@ -502,7 +502,7 @@ describe('error boundaries', () => {
 
     const store = createStore({
       state: { count: 0 },
-      actions: { inc: (s) => ({ count: s.count + 1 }) },
+      actions: { inc: (s) => { s.count++ } },
     });
 
     function Counter({ count }) {
@@ -536,7 +536,7 @@ describe('error boundaries', () => {
 
     const store = createStore({
       state: { count: 0 },
-      actions: { inc: (s) => ({ count: s.count + 1 }) },
+      actions: { inc: (s) => { s.count++ } },
     });
 
     function Counter({ count }) {
@@ -632,7 +632,7 @@ describe('error boundaries', () => {
     const Connected = connect(null, {
       store: {
         state: { open: false },
-        actions: { toggle: (s) => ({ ...s, open: !s.open }) },
+        actions: { toggle: (s) => { s.open = !s.open } },
       },
     })(Toggle);
 
@@ -651,7 +651,7 @@ describe('error boundaries', () => {
   it('local store works alongside global bindings', () => {
     const globalStore = createStore({
       state: { theme: 'dark' },
-      actions: { setTheme: (s, theme) => ({ ...s, theme }) },
+      actions: { setTheme: (s, theme) => { s.theme = theme } },
     });
 
     function Panel({ theme, expanded, toggleExpanded }) {
@@ -673,7 +673,7 @@ describe('error boundaries', () => {
         store: {
           state: { expanded: false },
           actions: {
-            toggleExpanded: (s) => ({ ...s, expanded: !s.expanded }),
+            toggleExpanded: (s) => { s.expanded = !s.expanded },
           },
         },
       },
@@ -711,7 +711,7 @@ describe('error boundaries', () => {
     const Connected = connect(null, {
       store: {
         state: { count: 0 },
-        actions: { increment: (s) => ({ ...s, count: s.count + 1 }) },
+        actions: { increment: (s) => { s.count++ } },
       },
     })(Counter);
 
@@ -742,7 +742,7 @@ describe('error boundaries', () => {
 
     const store = createStore({
       state: { count: 0 },
-      actions: { inc: (s) => ({ count: s.count + 1 }) },
+      actions: { inc: (s) => { s.count++ } },
     });
 
     function Counter({ count }) {

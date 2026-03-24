@@ -1,5 +1,6 @@
 import { scheduleUpdate } from './scheduler';
 import { shallowEqual } from './shallowEqual';
+import { produceAction } from './produce';
 import type { Store } from './store';
 import type {
   VNode,
@@ -159,9 +160,9 @@ export class ComponentInstance {
     for (const name in this._localActions) {
       const actionFn = this._localActions[name];
       result[name] = (payload?: any) => {
-        const nextState = actionFn(this._localState!, payload);
+        const nextState = produceAction(this._localState! as object, actionFn as any, payload);
         if (nextState !== this._localState) {
-          this._localState = nextState;
+          this._localState = nextState as Record<string, any>;
           if (this._renderCallback) {
             scheduleUpdate(this._renderCallback);
           }

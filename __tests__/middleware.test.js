@@ -7,9 +7,9 @@ function makeCounter(middleware) {
     state: { count: 0 },
     name: 'counter',
     actions: {
-      increment: (state) => ({ ...state, count: state.count + 1 }),
-      set: (state, value) => ({ ...state, count: value }),
-      noop: (state) => state,
+      increment: (s) => { s.count++ },
+      set: (s, value) => { s.count = value },
+      noop: () => {},
     },
     middleware,
   });
@@ -135,7 +135,7 @@ describe('middleware', () => {
   it('store.name is undefined when not set', () => {
     const store = createStore({
       state: { x: 0 },
-      actions: { inc: (s) => ({ ...s, x: s.x + 1 }) },
+      actions: { inc: (s) => { s.x++ } },
     });
     expect(store.name).toBeUndefined();
   });
@@ -251,9 +251,9 @@ describe('createAsyncAction', () => {
     return createStore({
       state: { items: [], loading: false, error: null },
       actions: {
-        fetchStart: (s) => ({ ...s, loading: true, error: null }),
-        fetchOk: (s, items) => ({ ...s, loading: false, items }),
-        fetchFail: (s, error) => ({ ...s, loading: false, error }),
+        fetchStart: (s) => { s.loading = true; s.error = null },
+        fetchOk: (s, items) => { s.loading = false; s.items = items },
+        fetchFail: (s, error) => { s.loading = false; s.error = error },
       },
     });
   }

@@ -13,21 +13,18 @@ const todoStore = createStore({
     filter: 'all', // 'all' | 'active' | 'completed'
   },
   actions: {
-    add: (state, text) => ({
-      ...state,
-      items: [...state.items, { id: Date.now(), text, done: false }],
-    }),
-    toggle: (state, id) => ({
-      ...state,
-      items: state.items.map((item) =>
-        item.id === id ? { ...item, done: !item.done } : item,
-      ),
-    }),
-    remove: (state, id) => ({
-      ...state,
-      items: state.items.filter((item) => item.id !== id),
-    }),
-    setFilter: (state, filter) => ({ ...state, filter }),
+    add: (s, text) => {
+      s.items.push({ id: Date.now(), text, done: false });
+    },
+    toggle: (s, id) => {
+      const item = s.items.find((i) => i.id === id);
+      item.done = !item.done;
+    },
+    remove: (s, id) => {
+      const idx = s.items.findIndex((i) => i.id === id);
+      s.items.splice(idx, 1);
+    },
+    setFilter: (s, filter) => { s.filter = filter },
   },
 });
 ```
@@ -72,24 +69,9 @@ Both are equivalent. `store.actions` is an object with one method per action def
 - Unknown action names throw: `[pulse] Unknown action: "typo"`.
 - Payload is optional — actions like `clearAll: (state) => ({ ...state, items: [] })` ignore the second argument.
 
-## Action Styles
+## Writing Actions
 
-Actions can be written in two styles:
-
-### Return-style (classic)
-
-Return a new state object. The original is never touched:
-
-```js
-actions: {
-  increment: (state) => ({ ...state, count: state.count + 1 }),
-  addItem: (state, item) => ({ ...state, items: [...state.items, item] }),
-}
-```
-
-### Mutation-style (recommended)
-
-Mutate the `prevState` parameter directly — Pulse uses a structural-sharing proxy to produce a new immutable state behind the scenes:
+Actions mutate the `prevState` parameter directly. Pulse uses a structural-sharing proxy behind the scenes — only the objects you touch are cloned, everything else keeps the same reference:
 
 ```js
 actions: {
@@ -99,12 +81,26 @@ actions: {
     const item = prevState.items.find(i => i.id === id);
     item.done = !item.done;
   },
+  setTheme: (prevState, theme) => { prevState.settings.theme = theme },
 }
 ```
 
-The key difference: **return nothing** (or `undefined`) and Pulse treats it as mutation-style. Return a value and Pulse uses that directly (classic style). Both styles can coexist in the same store.
+No spreading, no manual cloning — just mutate and Pulse handles immutability. Arrays work naturally: `push`, `pop`, `splice`, `sort`, `reverse`, `shift`, `unshift` all work as expected.
 
-Structural sharing means only the objects you actually touch are cloned — everything else keeps the same reference. This is important for selectors and `connect()` change detection.
+### Full State Replacement
+
+When you need to replace the entire state (e.g., a reset), use `replace()`:
+
+```js
+import { replace } from '@shane_il/pulse';
+
+actions: {
+  reset: () => replace({ items: [], filter: 'all' }),
+  loadSnapshot: (prevState, snapshot) => replace(snapshot),
+}
+```
+
+`replace()` is the escape hatch — use it when you want to swap the entire state object rather than mutate specific fields.
 
 ## Identity Check
 
@@ -213,9 +209,9 @@ Use multiple stores to separate concerns:
 const authStore = createStore({
   state: { user: null, loading: false },
   actions: {
-    setUser: (state, user) => ({ ...state, user, loading: false }),
-    logout: () => ({ user: null, loading: false }),
-    setLoading: (state) => ({ ...state, loading: true }),
+    setUser: (s, user) => { s.user = user; s.loading = false },
+    logout: () => replace({ user: null, loading: false }),
+    setLoading: (s) => { s.loading = true },
   },
 });
 

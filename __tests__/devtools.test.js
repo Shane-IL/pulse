@@ -15,9 +15,9 @@ function makeTrackedCounter(dt, name = 'counter') {
     state: { count: 0 },
     name,
     actions: {
-      increment: (state) => ({ ...state, count: state.count + 1 }),
-      decrement: (state) => ({ ...state, count: state.count - 1 }),
-      set: (state, value) => ({ ...state, count: value }),
+      increment: (s) => { s.count++ },
+      decrement: (s) => { s.count-- },
+      set: (s, value) => { s.count = value },
     },
     middleware: [actionHistory(history)],
   });
@@ -107,7 +107,7 @@ describe('instrumentStore', () => {
       state: { x: 0 },
       name: 'test',
       actions: {
-        inc: (s) => ({ ...s, x: s.x + 1 }),
+        inc: (s) => { s.x++ },
       },
     });
 
@@ -128,7 +128,7 @@ describe('instrumentStore', () => {
     const { store } = instrumentStore(dt, {
       state: { x: 0 },
       name: 'test',
-      actions: { inc: (s) => ({ ...s, x: s.x + 1 }) },
+      actions: { inc: (s) => { s.x++ } },
       middleware: [custom],
     });
 
@@ -253,7 +253,7 @@ describe('component tracking hooks', () => {
     const store = createStore({
       state: { x: 0 },
       name: 'test',
-      actions: { inc: (s) => ({ ...s, x: s.x + 1 }) },
+      actions: { inc: (s) => { s.x++ } },
     });
 
     const Connected = connect({
@@ -272,7 +272,7 @@ describe('component tracking hooks', () => {
     const store = createStore({
       state: { x: 0 },
       name: 'test',
-      actions: { inc: (s) => ({ ...s, x: s.x + 1 }) },
+      actions: { inc: (s) => { s.x++ } },
     });
 
     const Connected = connect({
@@ -293,7 +293,7 @@ describe('component tracking hooks', () => {
 
     const store = createStore({
       state: { x: 0 },
-      actions: { inc: (s) => ({ ...s, x: s.x + 1 }) },
+      actions: { inc: (s) => { s.x++ } },
     });
 
     const Connected = connect({
