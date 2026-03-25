@@ -7,8 +7,6 @@ Pulse components are plain functions that take props and return virtual DOM node
 The simplest component is a function that returns JSX:
 
 ```jsx
-import { h } from '@shane_il/pulse';
-
 function Greeting({ name }) {
   return <p>Hello, {name}!</p>;
 }
@@ -41,8 +39,6 @@ function Card({ title, children }) {
 Use `Fragment` (or `<>...</>`) to return multiple elements without a wrapper node:
 
 ```jsx
-import { h, Fragment } from '@shane_il/pulse';
-
 function UserInfo({ name, email }) {
   return (
     <>
@@ -58,7 +54,7 @@ function UserInfo({ name, email }) {
 `connect()` upgrades a plain component to a reactive one. It subscribes to stores, injects selected state as props, and re-renders when those values change.
 
 ```jsx
-import { h, connect } from '@shane_il/pulse';
+import { connect } from '@shane_il/pulse';
 import { counterStore } from '../stores/counter';
 
 // 1. Plain component — just renders props

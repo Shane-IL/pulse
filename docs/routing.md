@@ -310,7 +310,7 @@ router.store.getState();
 ## Full Example
 
 ```jsx
-import { h, render, createRouter } from '@shane_il/pulse';
+import { render, createRouter } from '@shane_il/pulse';
 
 const router = createRouter({
   routes: [{ path: '/' }, { path: '/users/:id' }, { path: '*' }],
@@ -347,5 +347,5 @@ function App() {
   );
 }
 
-render(<App />, document.getElementById('app'));
+render(<App />);
 ```

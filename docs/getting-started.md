@@ -8,43 +8,36 @@ npm install @shane_il/pulse
 
 ## JSX Setup
 
-Pulse uses a custom JSX pragma. Configure your toolchain to use `h` as the factory and `Fragment` as the fragment factory.
+Pulse ships a JSX automatic runtime — your bundler injects the factory for you, so no manual imports needed.
 
-### Vite / esbuild
+### Vite
+
+```js
+// vite.config.js
+export default defineConfig({
+  esbuild: {
+    jsx: 'automatic',
+    jsxImportSource: '@shane_il/pulse',
+  },
+});
+```
+
+### TypeScript / jsconfig
 
 ```json
-// jsconfig.json or tsconfig.json
 {
   "compilerOptions": {
-    "jsx": "react",
-    "jsxFactory": "h",
-    "jsxFragmentFactory": "Fragment"
+    "jsx": "react-jsx",
+    "jsxImportSource": "@shane_il/pulse"
   }
 }
 ```
 
-### Babel
+<details>
+<summary>Classic mode (manual <code>h</code> import)</summary>
 
-```json
-// .babelrc or babel.config.json
-{
-  "plugins": [
-    [
-      "@babel/plugin-transform-react-jsx",
-      {
-        "pragma": "h",
-        "pragmaFrag": "Fragment"
-      }
-    ]
-  ]
-}
-```
-
-> **Important:** Every file that uses JSX must import `h` (and `Fragment` if using `<>...</>`):
->
-> ```js
-> import { h, Fragment } from '@shane_il/pulse';
-> ```
+If you prefer the classic transform, set `"jsx": "react"`, `"jsxFactory": "h"`, `"jsxFragmentFactory": "Fragment"` and `import { h } from '@shane_il/pulse'` in every JSX file.
+</details>
 
 ## Your First App
 
@@ -72,7 +65,6 @@ Components are plain functions: `(props) => VNode`. No hooks, no `this`, no clas
 
 ```jsx
 // components/Counter.jsx
-import { h } from '@shane_il/pulse';
 import { counterStore } from '../stores/counter';
 
 function Counter({ count }) {
@@ -102,11 +94,16 @@ const ConnectedCounter = connect({
 ### 4. Render
 
 ```jsx
-// main.jsx
-import { h, render } from '@shane_il/pulse';
-import { ConnectedCounter } from './components/Counter';
+// components/Counter.jsx (at the bottom)
+import { render } from '@shane_il/pulse';
 
-render(<ConnectedCounter />, document.getElementById('app'));
+render(<ConnectedCounter />);
+```
+
+`render()` mounts to `#app` by default. You can also pass a selector string or element:
+
+```jsx
+render(<ConnectedCounter />, '#other-root');
 ```
 
 ## Project Structure
@@ -116,16 +113,15 @@ A typical Pulse app:
 ```
 my-app/
 ├── src/
-│   ├── main.jsx              # entry — render(<App />, ...)
 │   ├── stores/
 │   │   ├── counter.ts         # createStore({ state, actions })
 │   │   └── user.ts
 │   └── components/
-│       ├── App.tsx             # root component
+│       ├── App.tsx             # root component + render() call
 │       ├── Counter.tsx         # pure view function
 │       └── UserCard.tsx
-├── index.html
-├── tsconfig.json               # jsxFactory: "h"
+├── index.html                  # <script src="/src/components/App.tsx">
+├── vite.config.js              # jsxImportSource: "@shane_il/pulse"
 └── package.json
 ```
 
