@@ -3,6 +3,34 @@ import { render } from '../src/render';
 import { h, Fragment } from '../src/createElement';
 
 describe('render', () => {
+  it('defaults to #app when no container given', () => {
+    const app = document.createElement('div');
+    app.id = 'app';
+    document.body.appendChild(app);
+    try {
+      render(h('p', null, 'auto'));
+      expect(app.innerHTML).toBe('<p>auto</p>');
+    } finally {
+      document.body.removeChild(app);
+    }
+  });
+
+  it('accepts a CSS selector string', () => {
+    const el = document.createElement('div');
+    el.id = 'custom-root';
+    document.body.appendChild(el);
+    try {
+      render(h('p', null, 'selector'), '#custom-root');
+      expect(el.innerHTML).toBe('<p>selector</p>');
+    } finally {
+      document.body.removeChild(el);
+    }
+  });
+
+  it('throws when no mount target found', () => {
+    expect(() => render(h('p', null, 'fail'))).toThrow('no mount target');
+  });
+
   it('mounts an element to container', () => {
     const container = document.createElement('div');
     render(h('p', null, 'hello'), container);

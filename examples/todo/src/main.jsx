@@ -36,4 +36,4 @@ const ConnectedApp = connect({
   );
 });
 
-render(<ConnectedApp />, document.getElementById('app'));
+render(<ConnectedApp />);

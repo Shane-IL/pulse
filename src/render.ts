@@ -10,7 +10,19 @@ interface RootEntry {
 
 const roots = new WeakMap<Node, RootEntry>();
 
-export function render(vnode: VNode, container: Node): void {
+export function render(vnode: VNode, container?: Node | string): void {
+  if (typeof container === 'string') {
+    container = document.querySelector(container) as Node;
+  }
+  if (!container) {
+    container = document.getElementById('app') as Node;
+  }
+  if (!container) {
+    throw new Error(
+      'Pulse: no mount target found. Add <div id="app"></div> to your HTML or pass a container.',
+    );
+  }
+
   const prev = roots.get(container);
 
   if (!prev) {

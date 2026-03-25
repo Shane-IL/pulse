@@ -82,8 +82,8 @@ function Counter({ count }) {
 const ConnectedCounter = connect.from(counterStore, 'count')(Counter);
 // or: connect({ count: counterStore.select(s => s.count) })(Counter)
 
-// 4. Render
-render(<ConnectedCounter />, document.getElementById('app'));
+// 4. Render (defaults to #app)
+render(<ConnectedCounter />);
 ```
 
 ## How It Works

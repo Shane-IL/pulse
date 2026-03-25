@@ -1,8 +1,7 @@
 import { render } from '@shane_il/pulse';
 import { App } from './components/App';
 
-// Render the app
-render(<App />, document.getElementById('app'));
+render(<App />);
 
 // Tip: press Ctrl+Shift+P to open the Pulse devtools panel.
 // Both the "weather" and "preferences" stores will be visible,
