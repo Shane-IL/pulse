@@ -1,5 +1,3 @@
-import { h } from '@shane_il/pulse';
-
 export function ErrorMessage({ message }) {
   return (
     <div className="error-card">

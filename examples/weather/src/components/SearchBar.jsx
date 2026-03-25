@@ -1,4 +1,4 @@
-import { h, connect } from '@shane_il/pulse';
+import { connect } from '@shane_il/pulse';
 import { weatherStore, searchForCities, selectCityAndFetch } from '../stores/weather';
 
 // Module-scope debounce timer.

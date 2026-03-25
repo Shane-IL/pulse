@@ -1,4 +1,4 @@
-import { h, render, connect, createRouter } from '@shane_il/pulse';
+import { render, connect, createRouter } from '@shane_il/pulse';
 import { App } from './components/App';
 import { createTodoList } from './components/TodoList';
 

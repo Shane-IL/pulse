@@ -1,4 +1,4 @@
-import { h, connect } from '@shane_il/pulse';
+import { connect } from '@shane_il/pulse';
 import { prefsStore } from '../stores/preferences';
 
 function UnitToggleView({ units }) {

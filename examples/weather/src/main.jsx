@@ -1,4 +1,4 @@
-import { h, render } from '@shane_il/pulse';
+import { render } from '@shane_il/pulse';
 import { App } from './components/App';
 
 // Render the app

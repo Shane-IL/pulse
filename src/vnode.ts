@@ -1,8 +1,10 @@
 import type { ComponentInstance } from './connect';
 import type { SelectorBinding } from './store';
 
-export const TEXT_NODE: unique symbol = Symbol('TEXT_NODE');
-export const FRAGMENT: unique symbol = Symbol('FRAGMENT');
+// Symbol.for() ensures the same identity across separately-bundled entry points
+// (e.g. pulse core vs jsx-runtime vs devtools).
+export const TEXT_NODE: symbol = Symbol.for('pulse.TEXT_NODE');
+export const FRAGMENT: symbol = Symbol.for('pulse.FRAGMENT');
 
 export type VNodeType =
   | string

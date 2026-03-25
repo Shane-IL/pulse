@@ -1,4 +1,3 @@
-import { h } from '@shane_il/pulse';
 import { togglePanel } from '@shane_il/pulse/devtools';
 import { SearchBar } from './SearchBar';
 import { CurrentWeather } from './CurrentWeather';

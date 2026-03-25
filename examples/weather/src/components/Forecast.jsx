@@ -1,4 +1,4 @@
-import { h, connect } from '@shane_il/pulse';
+import { connect } from '@shane_il/pulse';
 import { weatherStore } from '../stores/weather';
 import { prefsStore } from '../stores/preferences';
 import { ForecastDay } from './ForecastDay';

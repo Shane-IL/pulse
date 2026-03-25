@@ -1,4 +1,4 @@
-import { h, connect } from '@shane_il/pulse';
+import { connect } from '@shane_il/pulse';
 import { todoStore } from '../stores/todos';
 
 function AddTodoView() {

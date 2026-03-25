@@ -1,4 +1,3 @@
-import { h } from '@shane_il/pulse';
 import { todoStore } from '../stores/todos';
 
 export function TodoItem({ item }) {

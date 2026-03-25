@@ -20,22 +20,43 @@ A render-driven UI framework with virtual DOM and immutable stores. Like React, 
 npm install @shane_il/pulse
 ```
 
-Configure your JSX pragma (jsconfig.json, tsconfig.json, or Babel):
+Configure JSX automatic runtime (Vite, TypeScript, or Babel):
 
+**Vite** (`vite.config.js`):
+```js
+export default defineConfig({
+  esbuild: {
+    jsx: 'automatic',
+    jsxImportSource: '@shane_il/pulse',
+  },
+});
+```
+
+**TypeScript** (`tsconfig.json` / `jsconfig.json`):
 ```json
 {
   "compilerOptions": {
-    "jsx": "react",
-    "jsxFactory": "h",
-    "jsxFragmentFactory": "Fragment"
+    "jsx": "react-jsx",
+    "jsxImportSource": "@shane_il/pulse"
   }
 }
 ```
 
+No need to import `h` in every file — the bundler handles it automatically.
+
+<details>
+<summary>Classic mode (manual <code>h</code> import)</summary>
+
+```json
+{ "compilerOptions": { "jsx": "react", "jsxFactory": "h", "jsxFragmentFactory": "Fragment" } }
+```
+Then `import { h } from '@shane_il/pulse'` in every JSX file.
+</details>
+
 ## Example
 
 ```jsx
-import { h, createStore, connect, render } from '@shane_il/pulse';
+import { createStore, connect, render } from '@shane_il/pulse';
 
 // 1. Create a store
 const counterStore = createStore({
@@ -98,7 +119,7 @@ Store dispatch → Notify subscribers → Schedule re-render → Expand componen
 
 ```bash
 npm install
-npm test          # 296 tests (vitest)
+npm test          # 313 tests (vitest)
 npm run typecheck # tsc --noEmit
 npm run lint      # eslint
 npm run build     # vite lib mode → dist/

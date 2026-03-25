@@ -1,5 +1,3 @@
-import { h } from '@shane_il/pulse';
-
 export function LoadingSpinner({ message }) {
   return (
     <div className="loading">

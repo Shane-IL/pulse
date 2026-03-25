@@ -1,4 +1,3 @@
-import { h } from '@shane_il/pulse';
 import { getWeatherInfo } from '../weather-codes';
 
 /**

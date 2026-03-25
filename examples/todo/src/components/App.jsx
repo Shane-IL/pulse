@@ -1,4 +1,3 @@
-import { h } from '@shane_il/pulse';
 import { togglePanel } from '@shane_il/pulse/devtools';
 import { AddTodo } from './AddTodo';
 import { Footer } from './Footer';
