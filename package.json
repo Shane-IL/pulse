@@ -1,6 +1,6 @@
 {
   "name": "@shane_il/pulse",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "A render-driven UI framework with virtual DOM and immutable stores",
   "author": "Shane-IL",
   "repository": {
