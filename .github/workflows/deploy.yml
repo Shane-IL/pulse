@@ -30,7 +30,7 @@ jobs:
       - run: npm run build
 
       # Build todo example
-      - run: npm ci
+      - run: npm install
         working-directory: examples/todo
       - run: npm run build
         working-directory: examples/todo
@@ -38,7 +38,7 @@ jobs:
           GITHUB_PAGES: true
 
       # Build weather example
-      - run: npm ci
+      - run: npm install
         working-directory: examples/weather
       - run: npm run build
         working-directory: examples/weather
