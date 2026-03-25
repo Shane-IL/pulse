@@ -31,24 +31,23 @@ const { store: weatherStore } = instrumentStore(devtools, {
   },
   actions: {
     // Search actions (dispatched by searchForCities async action)
-    searchStart: (state) => ({ ...state, searchLoading: true, searchError: null }),
-    searchOk: (state, results) => ({ ...state, searchLoading: false, searchResults: results }),
-    searchFail: (state, error) => ({ ...state, searchLoading: false, searchError: error }),
-    clearSearch: (state) => ({ ...state, searchResults: [], searchError: null }),
+    searchStart: () => ({ searchLoading: true, searchError: null }),
+    searchOk: (s, results) => ({ searchLoading: false, searchResults: results }),
+    searchFail: (s, error) => ({ searchLoading: false, searchError: error }),
+    clearSearch: () => ({ searchResults: [], searchError: null }),
 
     // Weather fetch actions (dispatched by loadWeather async action)
-    fetchStart: (state) => ({ ...state, loading: true, error: null }),
-    fetchOk: (state, data) => ({
-      ...state,
+    fetchStart: () => ({ loading: true, error: null }),
+    fetchOk: (s, data) => ({
       loading: false,
       current: data.current,
       daily: data.daily,
       units: data.units,
     }),
-    fetchFail: (state, error) => ({ ...state, loading: false, error }),
+    fetchFail: (s, error) => ({ loading: false, error }),
 
     // Select a city (synchronous — clears search dropdown)
-    selectCity: (state, city) => ({ ...state, city, searchResults: [] }),
+    selectCity: (s, city) => ({ city, searchResults: [] }),
   },
 
   // logger() middleware logs every dispatch to the browser console.

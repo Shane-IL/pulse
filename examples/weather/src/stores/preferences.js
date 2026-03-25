@@ -14,9 +14,8 @@ const { store: prefsStore } = instrumentStore(devtools, {
     units: 'celsius', // 'celsius' | 'fahrenheit'
   },
   actions: {
-    toggleUnits: (state) => ({
-      ...state,
-      units: state.units === 'celsius' ? 'fahrenheit' : 'celsius',
+    toggleUnits: (s) => ({
+      units: s.units === 'celsius' ? 'fahrenheit' : 'celsius',
     }),
   },
 });

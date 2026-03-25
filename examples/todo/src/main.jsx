@@ -6,13 +6,15 @@ import { createTodoList } from './components/TodoList';
 // Open devtools panel (also available via Ctrl+Shift+P)
 openPanel();
 
-// Create router
+// Create router (basePath set via Vite's import.meta.env.BASE_URL for GitHub Pages)
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const router = createRouter({
   routes: [
     { path: '/' },
     { path: '/active' },
     { path: '/completed' },
   ],
+  basePath: base || undefined,
 });
 
 const { Route, Link } = router;

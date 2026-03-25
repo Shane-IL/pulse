@@ -507,3 +507,57 @@ describe('edge cases', () => {
     router.destroy();
   });
 });
+
+// ── Base Path ─────────────────────────────────────────────
+
+describe('basePath', () => {
+  afterEach(() => window.history.pushState(null, '', '/'));
+
+  it('strips basePath from initial URL', () => {
+    window.history.pushState(null, '', '/app/about');
+    const router = createRouter({
+      routes: [{ path: '/' }, { path: '/about' }],
+      basePath: '/app',
+    });
+    expect(router.store.getState().path).toBe('/about');
+    router.destroy();
+  });
+
+  it('navigate prepends basePath to browser URL', () => {
+    const spy = vi.spyOn(window.history, 'pushState');
+    const router = createRouter({
+      routes: [{ path: '/' }, { path: '/about' }],
+      basePath: '/app',
+      initialPath: '/',
+    });
+    router.navigate('/about');
+    expect(spy).toHaveBeenCalledWith(null, '', '/app/about');
+    expect(router.store.getState().path).toBe('/about');
+    spy.mockRestore();
+    router.destroy();
+  });
+
+  it('Link href includes basePath', () => {
+    const router = createRouter({
+      routes: [{ path: '/' }, { path: '/about' }],
+      basePath: '/app',
+      initialPath: '/',
+    });
+    const { Link } = router;
+    const container = document.createElement('div');
+    render(h(Link, { to: '/about' }, 'About'), container);
+    const a = container.querySelector('a');
+    expect(a.getAttribute('href')).toBe('/app/about');
+    router.destroy();
+  });
+
+  it('basePath root resolves to /', () => {
+    window.history.pushState(null, '', '/app');
+    const router = createRouter({
+      routes: [{ path: '/' }],
+      basePath: '/app',
+    });
+    expect(router.store.getState().path).toBe('/');
+    router.destroy();
+  });
+});

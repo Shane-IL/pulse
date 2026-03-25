@@ -1,0 +1,68 @@
+name: Deploy Examples to GitHub Pages
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # Build the core library first (examples depend on it via file:../../)
+      - run: npm ci
+      - run: npm run build
+
+      # Build todo example
+      - run: npm ci
+        working-directory: examples/todo
+      - run: npm run build
+        working-directory: examples/todo
+        env:
+          GITHUB_PAGES: true
+
+      # Build weather example
+      - run: npm ci
+        working-directory: examples/weather
+      - run: npm run build
+        working-directory: examples/weather
+        env:
+          GITHUB_PAGES: true
+
+      # Assemble site: landing page + both example builds
+      - name: Assemble site
+        run: |
+          mkdir -p _site/todo _site/weather
+          cp examples/index.html _site/
+          cp -r examples/todo/dist/* _site/todo/
+          cp -r examples/weather/dist/* _site/weather/
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

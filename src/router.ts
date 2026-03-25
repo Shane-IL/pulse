@@ -21,6 +21,7 @@ export interface RouteConfig {
 export interface RouterOptions {
   routes: RouteConfig[];
   initialPath?: string;
+  basePath?: string;
 }
 
 export interface Router {
@@ -138,9 +139,26 @@ function matchRoute(path: string, routes: RouteConfig[]): MatchResult | null {
 
 export function createRouter(options: RouterOptions): Router {
   const { routes, initialPath } = options;
+  // Normalize basePath: ensure it starts with / and has no trailing slash
+  const basePath = options.basePath
+    ? normalizePath(options.basePath)
+    : '';
+
+  function stripBase(pathname: string): string {
+    if (basePath && pathname.startsWith(basePath)) {
+      const stripped = pathname.slice(basePath.length);
+      return stripped === '' ? '/' : stripped;
+    }
+    return pathname;
+  }
+
+  function prependBase(path: string): string {
+    if (!basePath) return path;
+    return basePath + (path === '/' ? '' : path);
+  }
 
   // Read initial URL
-  const initPathRaw = initialPath ?? window.location.pathname;
+  const initPathRaw = initialPath ?? stripBase(window.location.pathname);
   const initSearch = initialPath ? '' : window.location.search;
   const initPath = normalizePath(initPathRaw);
   const initQuery = parseQuery(initSearch);
@@ -179,13 +197,13 @@ export function createRouter(options: RouterOptions): Router {
 
   function navigate(path: string): void {
     const state = buildState(path);
-    window.history.pushState(null, '', path);
+    window.history.pushState(null, '', prependBase(path));
     store.dispatch('_sync', state);
   }
 
   function redirect(path: string): void {
     const state = buildState(path);
-    window.history.replaceState(null, '', path);
+    window.history.replaceState(null, '', prependBase(path));
     store.dispatch('_sync', state);
   }
 
@@ -200,7 +218,8 @@ export function createRouter(options: RouterOptions): Router {
   // ── Popstate ──
 
   function onPopState(): void {
-    const state = buildState(window.location.pathname + window.location.search);
+    const raw = stripBase(window.location.pathname) + window.location.search;
+    const state = buildState(raw);
     store.dispatch('_sync', state);
   }
 
@@ -242,7 +261,7 @@ export function createRouter(options: RouterOptions): Router {
       'a',
       {
         ...rest,
-        href: to,
+        href: prependBase(to),
         className: cls || undefined,
         onClick: (e: MouseEvent) => {
           if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;

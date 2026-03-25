@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pulse Examples</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      text-align: center;
+      max-width: 600px;
+      padding: 2rem;
+    }
+    h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #60a5fa, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .tagline {
+      color: #94a3b8;
+      margin-bottom: 2.5rem;
+      font-size: 1.1rem;
+    }
+    .cards {
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 2rem;
+      width: 240px;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .card:hover {
+      border-color: #60a5fa;
+      transform: translateY(-2px);
+    }
+    .card h2 {
+      font-size: 1.3rem;
+      margin-bottom: 0.5rem;
+      color: #f1f5f9;
+    }
+    .card p {
+      font-size: 0.9rem;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      margin-top: 1rem;
+      background: #1e3a5f;
+      color: #60a5fa;
+    }
+    .links {
+      margin-top: 2.5rem;
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+    }
+    .links a {
+      color: #60a5fa;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    .links a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Pulse</h1>
+    <p class="tagline">A render-driven UI framework with virtual DOM and immutable stores</p>
+    <div class="cards">
+      <a class="card" href="./todo/">
+        <h2>Todo App</h2>
+        <p>Stores, connected components, lifecycle hooks, client-side routing, devtools</p>
+        <span class="badge">Router + Devtools</span>
+      </a>
+      <a class="card" href="./weather/">
+        <h2>Weather Dashboard</h2>
+        <p>Async actions, multi-store connect, logger middleware, Open-Meteo API</p>
+        <span class="badge">Async + Multi-store</span>
+      </a>
+    </div>
+    <div class="links">
+      <a href="https://github.com/Shane-IL/pulse">GitHub</a>
+      <a href="https://www.npmjs.com/package/@shane_il/pulse">npm</a>
+      <a href="https://github.com/Shane-IL/pulse/tree/master/docs">Docs</a>
+    </div>
+  </div>
+</body>
+</html>
