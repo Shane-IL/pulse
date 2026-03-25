@@ -1,10 +1,11 @@
+import { render } from '@shane_il/pulse';
 import { togglePanel } from '@shane_il/pulse/devtools';
 import { SearchBar } from './SearchBar';
 import { CurrentWeather } from './CurrentWeather';
 import { Forecast } from './Forecast';
 import { UnitToggle } from './UnitToggle';
 
-export function App() {
+function App() {
   return (
     <div>
       <header className="header">
@@ -20,3 +21,5 @@ export function App() {
     </div>
   );
 }
+
+render(<App />);

@@ -19,5 +19,5 @@ Open http://localhost:5173 in your browser.
 | `connect()` with selectors | `src/components/TodoList.jsx` |
 | `connect()` with `onMount` lifecycle | `src/components/AddTodo.jsx` |
 | Pure function components | `src/components/TodoItem.jsx` |
-| `createRouter` / `Route` / `Link` | `src/main.jsx`, `src/components/Footer.jsx` |
+| `createRouter` / `Route` / `Link` | `src/components/App.jsx`, `src/components/Footer.jsx` |
 | Keyed lists | `src/components/TodoList.jsx` |
