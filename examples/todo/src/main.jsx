@@ -1,10 +1,6 @@
 import { h, render, connect, createRouter } from '@shane_il/pulse';
-import { openPanel } from '@shane_il/pulse/devtools';
 import { App } from './components/App';
 import { createTodoList } from './components/TodoList';
-
-// Open devtools panel (also available via Ctrl+Shift+P)
-openPanel();
 
 // Create router (basePath set via Vite's import.meta.env.BASE_URL for GitHub Pages)
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');

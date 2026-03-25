@@ -1,4 +1,5 @@
 import { h } from '@shane_il/pulse';
+import { togglePanel } from '@shane_il/pulse/devtools';
 import { AddTodo } from './AddTodo';
 import { Footer } from './Footer';
 
@@ -17,6 +18,9 @@ export function App({ path, Route, Link, TodoAll, TodoActive, TodoCompleted }) {
         <Route path="/completed" component={TodoCompleted} />
         <Footer Link={Link} filter={filter} />
       </div>
+      <button className="devtools-toggle" onClick={() => togglePanel()}>
+        Devtools
+      </button>
     </div>
   );
 }

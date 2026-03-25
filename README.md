@@ -78,6 +78,11 @@ Store dispatch → Notify subscribers → Schedule re-render → Expand componen
 4. The **scheduler** batches multiple store updates in the same tick into a single render pass.
 5. The **VDOM engine** diffs the old and new virtual trees and patches only the changed DOM nodes.
 
+## Live Examples
+
+- **[Todo App](https://shane-il.github.io/pulse/todo/)** — stores, connected components, routing, devtools
+- **[Weather Dashboard](https://shane-il.github.io/pulse/weather/)** — async actions, multi-store connect, logger middleware
+
 ## Documentation
 
 - **[Getting Started](docs/getting-started.md)** — installation, JSX setup, first app, project structure

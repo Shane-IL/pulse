@@ -1,4 +1,5 @@
 import { h } from '@shane_il/pulse';
+import { togglePanel } from '@shane_il/pulse/devtools';
 import { SearchBar } from './SearchBar';
 import { CurrentWeather } from './CurrentWeather';
 import { Forecast } from './Forecast';
@@ -14,6 +15,9 @@ export function App() {
       <SearchBar />
       <CurrentWeather />
       <Forecast />
+      <button className="devtools-toggle" onClick={() => togglePanel()}>
+        Devtools
+      </button>
     </div>
   );
 }
